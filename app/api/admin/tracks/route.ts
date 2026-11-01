@@ -1,40 +1,29 @@
 import { NextResponse } from "next/server";
-import { prisma } from "../../../(frontend)/_lib/db";
+import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/db";
+import { handleApiError, readJson, requireAdmin } from "@/lib/api";
+import { trackInput } from "@/lib/validation";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const tracks = await prisma.track.findMany({
-      orderBy: { createdAt: "asc" },
-    });
+    await requireAdmin(req);
+    const tracks = await prisma.track.findMany({ orderBy: { createdAt: "asc" } });
     return NextResponse.json(tracks);
   } catch (error) {
-    console.error("Admin API GET tracks error:", error);
-    return NextResponse.json({ error: "Failed to fetch tracks" }, { status: 500 });
+    return handleApiError(error, "list tracks");
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { title, artist, audioUrl, coverUrl, duration } = body;
-
-    if (!title || !artist || !audioUrl) {
-      return NextResponse.json({ error: "Title, Artist, and Audio URL are required" }, { status: 400 });
-    }
-
+    await requireAdmin(req);
+    const { coverUrl, duration, ...input } = await readJson(req, trackInput);
     const track = await prisma.track.create({
-      data: {
-        title,
-        artist,
-        audioUrl,
-        coverUrl: coverUrl || null,
-        duration: duration ? parseInt(duration) : null,
-      },
+      data: { ...input, coverUrl: coverUrl || null, duration: duration ?? null },
     });
-
-    return NextResponse.json(track);
+    revalidatePath("/", "layout");
+    return NextResponse.json(track, { status: 201 });
   } catch (error) {
-    console.error("Admin API POST track error:", error);
-    return NextResponse.json({ error: "Failed to create track" }, { status: 500 });
+    return handleApiError(error, "create track");
   }
 }

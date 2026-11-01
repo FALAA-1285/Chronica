@@ -1,33 +1,40 @@
 import { NextResponse } from "next/server";
-import { prisma } from "../../../(frontend)/_lib/db";
+import { prisma } from "@/lib/db";
+import { ApiError, handleApiError, readJson } from "@/lib/api";
+import { hashPassword, verifyPassword } from "@/lib/auth/password";
+import { startSession } from "@/lib/auth/session";
+import { clientIp, rateLimit, resetRateLimit } from "@/lib/rate-limit";
+import { loginInput } from "@/lib/validation";
+
+const MAX_ATTEMPTS = 5;
+const WINDOW_MS = 15 * 60 * 1000;
+
+let dummyHash: Promise<string> | undefined;
+const getDummyHash = () => (dummyHash ??= hashPassword("timing-equalizer"));
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { email, password } = body;
+    const { email, password } = await readJson(req, loginInput);
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email dan Password wajib diisi!" }, { status: 400 });
+    const key = `login:${clientIp(req)}:${email.toLowerCase()}`;
+    const limit = rateLimit(key, MAX_ATTEMPTS, WINDOW_MS);
+    if (!limit.ok) {
+      throw new ApiError(429, `Terlalu banyak percobaan. Coba lagi dalam ${Math.ceil(limit.retryAfterSeconds / 60)} menit.`, {
+        "Retry-After": String(limit.retryAfterSeconds),
+      });
     }
 
-    const author = await prisma.author.findUnique({
-      where: { email },
-    });
-
-    if (!author || author.password !== password) {
-      return NextResponse.json({ error: "Email atau Password salah!" }, { status: 401 });
+    const author = await prisma.author.findUnique({ where: { email } });
+    // Hash even for unknown emails so response time does not reveal which emails exist.
+    const valid = await verifyPassword(password, author?.password ?? (await getDummyHash()));
+    if (!author || !valid) {
+      throw new ApiError(401, "Email atau password salah.");
     }
 
-    // Return session details, exclude password
-    const { password: _, ...sessionUser } = author;
-
-    return NextResponse.json({
-      success: true,
-      message: "Login berhasil!",
-      user: sessionUser,
-    });
-  } catch (error: any) {
-    console.error("Login API Error:", error);
-    return NextResponse.json({ error: "Gagal memproses login." }, { status: 500 });
+    resetRateLimit(key);
+    await startSession(author.id, author.password);
+    return NextResponse.json({ user: { id: author.id, name: author.name, email: author.email, avatar: author.avatar } });
+  } catch (error) {
+    return handleApiError(error, "login");
   }
 }

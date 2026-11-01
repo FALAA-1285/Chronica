@@ -1,19 +1,15 @@
 import { NextResponse } from "next/server";
-import { prisma } from "../../(frontend)/_lib/db";
+import { handleApiError } from "@/lib/api";
+import { searchPosts } from "@/lib/posts";
 
-export async function GET() {
+// Public search used by the Ctrl+K modal. Returns published post summaries only.
+export async function GET(req: Request) {
   try {
-    const posts = await prisma.post.findMany({
-      orderBy: { publishedAt: "desc" },
-      include: {
-        category: true,
-        tags: true,
-        author: true,
-      },
-    });
-    return NextResponse.json(posts);
-  } catch (err) {
-    console.error("Prisma failed to fetch posts:", err);
-    return NextResponse.json({ error: "Failed to fetch posts" }, { status: 500 });
+    const { searchParams } = new URL(req.url);
+    const q = (searchParams.get("q") ?? "").slice(0, 100);
+    const limit = Math.min(Math.max(Number(searchParams.get("limit")) || 8, 1), 20);
+    return NextResponse.json(await searchPosts(q, limit));
+  } catch (error) {
+    return handleApiError(error, "search posts");
   }
 }

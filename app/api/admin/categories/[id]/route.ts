@@ -1,44 +1,41 @@
 import { NextResponse } from "next/server";
-import { prisma } from "../../../../(frontend)/_lib/db";
+import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/db";
+import { ApiError, handleApiError, readJson, requireAdmin, type RouteContext } from "@/lib/api";
+import { categoryInput } from "@/lib/validation";
 
-export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
+export async function PUT(req: Request, { params }: RouteContext) {
   try {
-    const { id } = await props.params;
-    const body = await req.json();
-    const { name, slug, description, color, bgColor, icon } = body;
-
-    if (!name || !slug) {
-      return NextResponse.json({ error: "Name and Slug are required" }, { status: 400 });
-    }
-
+    await requireAdmin(req);
+    const { id } = await params;
+    const data = await readJson(req, categoryInput);
     const category = await prisma.category.update({
       where: { id },
-      data: {
-        name,
-        slug,
-        description: description || "",
-        color: color || "#0A0A0A",
-        bgColor: bgColor || "#FFE500",
-        icon: icon || "BookOpen",
-      },
+      data,
+      include: { _count: { select: { posts: true } } },
     });
-
+    revalidatePath("/", "layout");
     return NextResponse.json(category);
   } catch (error) {
-    console.error("Admin API PUT category error:", error);
-    return NextResponse.json({ error: "Failed to update category" }, { status: 500 });
+    return handleApiError(error, "update category");
   }
 }
 
-export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, { params }: RouteContext) {
   try {
-    const { id } = await props.params;
-    await prisma.category.delete({
-      where: { id },
-    });
+    await requireAdmin(req);
+    const { id } = await params;
+
+    // The FK is ON DELETE RESTRICT; check first to give a helpful message.
+    const postCount = await prisma.post.count({ where: { categoryId: id } });
+    if (postCount > 0) {
+      throw new ApiError(409, `Kategori masih dipakai ${postCount} artikel. Pindahkan artikelnya ke kategori lain dulu.`);
+    }
+
+    await prisma.category.delete({ where: { id } });
+    revalidatePath("/", "layout");
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Admin API DELETE category error:", error);
-    return NextResponse.json({ error: "Failed to delete category" }, { status: 500 });
+    return handleApiError(error, "delete category");
   }
 }

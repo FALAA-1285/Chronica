@@ -1,43 +1,40 @@
 import { NextResponse } from "next/server";
-import { prisma } from "../../../../(frontend)/_lib/db";
+import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/db";
+import { handleApiError, readJson, requireAdmin, type RouteContext } from "@/lib/api";
+import { removeUnusedUploads } from "@/lib/uploads";
+import { trackInput } from "@/lib/validation";
 
-export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
+export async function PUT(req: Request, { params }: RouteContext) {
   try {
-    const { id } = await props.params;
-    const body = await req.json();
-    const { title, artist, audioUrl, coverUrl, duration } = body;
+    await requireAdmin(req);
+    const { id } = await params;
+    const { coverUrl, duration, ...input } = await readJson(req, trackInput);
 
-    if (!title || !artist || !audioUrl) {
-      return NextResponse.json({ error: "Title, Artist, and Audio URL are required" }, { status: 400 });
-    }
-
+    const existing = await prisma.track.findUniqueOrThrow({ where: { id } });
     const track = await prisma.track.update({
       where: { id },
-      data: {
-        title,
-        artist,
-        audioUrl,
-        coverUrl: coverUrl || null,
-        duration: duration ? parseInt(duration) : null,
-      },
+      data: { ...input, coverUrl: coverUrl || null, duration: duration ?? null },
     });
 
+    await removeUnusedUploads([existing.audioUrl, existing.coverUrl ?? ""]);
+    revalidatePath("/", "layout");
     return NextResponse.json(track);
   } catch (error) {
-    console.error("Admin API PUT track error:", error);
-    return NextResponse.json({ error: "Failed to update track" }, { status: 500 });
+    return handleApiError(error, "update track");
   }
 }
 
-export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, { params }: RouteContext) {
   try {
-    const { id } = await props.params;
-    await prisma.track.delete({
-      where: { id },
-    });
+    await requireAdmin(req);
+    const { id } = await params;
+    const deleted = await prisma.track.delete({ where: { id } });
+
+    await removeUnusedUploads([deleted.audioUrl, deleted.coverUrl ?? ""]);
+    revalidatePath("/", "layout");
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Admin API DELETE track error:", error);
-    return NextResponse.json({ error: "Failed to delete track" }, { status: 500 });
+    return handleApiError(error, "delete track");
   }
 }

@@ -1,101 +1,69 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../(frontend)/_lib/db";
+import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/db";
+import { ApiError, handleApiError, readJson, requireAdmin } from "@/lib/api";
+import { hashPassword, verifyPassword } from "@/lib/auth/password";
+import { startSession } from "@/lib/auth/session";
+import { removeUnusedUploads } from "@/lib/uploads";
+import { authorInput } from "@/lib/validation";
 
-export async function GET(req: NextRequest) {
+const profileSelect = {
+  id: true,
+  name: true,
+  email: true,
+  avatar: true,
+  bio: true,
+  twitter: true,
+  github: true,
+  linkedin: true,
+} as const;
+
+// The author id always comes from the session, never from the request.
+export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
-
-    if (!id) {
-      return NextResponse.json(
-        { error: "ID author wajib disertakan!" },
-        { status: 400 }
-      );
-    }
-
-    const author = await prisma.author.findUnique({
-      where: { id },
-    });
-
-    if (!author) {
-      return NextResponse.json(
-        { error: "Author tidak ditemukan!" },
-        { status: 404 }
-      );
-    }
-
+    const user = await requireAdmin(req);
+    const author = await prisma.author.findUniqueOrThrow({ where: { id: user.id }, select: profileSelect });
     return NextResponse.json(author);
-  } catch (error: any) {
-    console.error("Gagal mengambil data author:", error);
-    return NextResponse.json(
-      { error: "Gagal memproses permintaan data author." },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleApiError(error, "get author");
   }
 }
 
-export async function PUT(req: NextRequest) {
+export async function PUT(req: Request) {
   try {
-    const body = await req.json();
-    const {
-      id,
-      name,
-      email,
-      password,
-      avatar,
-      bio,
-      twitter,
-      github,
-      linkedin,
-    } = body;
+    const user = await requireAdmin(req);
+    const { currentPassword, newPassword, ...profile } = await readJson(req, authorInput);
 
-    if (!id) {
-      return NextResponse.json(
-        { error: "ID author wajib disertakan!" },
-        { status: 400 }
-      );
-    }
+    const existing = await prisma.author.findUniqueOrThrow({ where: { id: user.id } });
 
-    // Check email uniqueness if email is modified
-    if (email) {
-      const existingAuthor = await prisma.author.findUnique({
-        where: { email },
-      });
-      if (existingAuthor && existingAuthor.id !== id) {
-        return NextResponse.json(
-          { error: "Email sudah digunakan oleh author lain!" },
-          { status: 400 }
-        );
+    let passwordHash: string | undefined;
+    if (newPassword) {
+      if (!(await verifyPassword(currentPassword ?? "", existing.password))) {
+        throw new ApiError(400, "Password saat ini salah.");
       }
+      passwordHash = await hashPassword(newPassword);
     }
 
-    const updatedAuthor = await prisma.author.update({
-      where: { id },
+    const updated = await prisma.author.update({
+      where: { id: user.id },
       data: {
-        name,
-        email,
-        password,
-        avatar,
-        bio,
-        twitter,
-        github,
-        linkedin,
+        ...profile,
+        twitter: profile.twitter || null,
+        github: profile.github || null,
+        linkedin: profile.linkedin || null,
+        ...(passwordHash ? { password: passwordHash } : {}),
       },
+      select: profileSelect,
     });
 
-    // Exclude password from returned payload for security
-    const { password: _, ...sessionUser } = updatedAuthor;
+    // Changing the password revokes other sessions; keep this one signed in.
+    if (passwordHash) await startSession(user.id, passwordHash);
 
-    return NextResponse.json({
-      success: true,
-      message: "Profil author berhasil diperbarui!",
-      user: sessionUser,
-    });
-  } catch (error: any) {
-    console.error("Gagal memperbarui data author:", error);
-    return NextResponse.json(
-      { error: error.message || "Gagal memperbarui profil author." },
-      { status: 500 }
-    );
+    if (existing.avatar !== updated.avatar) await removeUnusedUploads([existing.avatar]);
+    revalidatePath("/", "layout");
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    return handleApiError(error, "update author");
   }
 }

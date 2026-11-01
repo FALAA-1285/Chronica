@@ -1,5 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Prisma schema — https://pris.ly/d/prisma-schema
+// Connection URL lives in prisma.config.ts (DATABASE_URL).
 
 generator client {
   provider = "prisma-client-js"
@@ -13,6 +13,7 @@ model Author {
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
+  /// scrypt hash (see lib/auth/password.ts), never plaintext
   password  String
   avatar    String
   bio       String   @db.Text
@@ -48,23 +49,27 @@ model Tag {
 }
 
 model Post {
-  id              String     @id @default(uuid())
-  title           String
-  slug            String     @unique
-  excerpt         String     @db.Text
-  content         String     @db.Text
-  coverImage      String
-  authorId        String
-  author          Author     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  categoryId      String
-  category        Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  tags            Tag[]
-  publishedAt     DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
-  readingTime     Int
-  featured        Boolean    @default(false)
-  views           Int        @default(0)
-  likes           Int        @default(0)
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  excerpt     String   @db.Text
+  content     String   @db.MediumText
+  coverImage  String
+  authorId    String
+  // Restrict: deleting an author/category must never silently delete articles.
+  author      Author   @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  tags        Tag[]
+  published   Boolean  @default(true)
+  publishedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  readingTime Int
+  featured    Boolean  @default(false)
+  views       Int      @default(0)
+  likes       Int      @default(0)
+
+  @@index([published, publishedAt])
 }
 
 model Track {
@@ -73,7 +78,19 @@ model Track {
   artist    String
   audioUrl  String
   coverUrl  String?
-  duration  Int?     // in seconds
+  duration  Int? // in seconds
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  subject   String?
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
 }

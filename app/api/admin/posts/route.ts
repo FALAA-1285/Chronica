@@ -1,59 +1,42 @@
 import { NextResponse } from "next/server";
-import { prisma } from "../../../(frontend)/_lib/db";
+import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/db";
+import { handleApiError, readJson, requireAdmin } from "@/lib/api";
+import { estimateReadingTime } from "@/lib/format";
+import { DEFAULT_COVER_IMAGE } from "@/lib/media";
+import { postInput } from "@/lib/validation";
+import { adminPostInclude } from "@/lib/admin-queries";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const posts = await prisma.post.findMany({
-      orderBy: { publishedAt: "desc" },
-      include: {
-        category: true,
-        tags: true,
-      },
-    });
+    await requireAdmin(req);
+    const posts = await prisma.post.findMany({ orderBy: { publishedAt: "desc" }, include: adminPostInclude });
     return NextResponse.json(posts);
   } catch (error) {
-    console.error("Admin API GET posts error:", error);
-    return NextResponse.json({ error: "Failed to fetch posts" }, { status: 500 });
+    return handleApiError(error, "list posts");
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { title, slug, excerpt, content, coverImage, categoryId, tags, readingTime, featured } = body;
-
-    if (!title || !slug || !content || !categoryId) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
+    const user = await requireAdmin(req);
+    const { tags, categoryId, readingTime, coverImage, ...input } = await readJson(req, postInput);
 
     const post = await prisma.post.create({
       data: {
-        title,
-        slug,
-        excerpt: excerpt || "",
-        content,
-        coverImage: coverImage || "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&h=450&fit=crop",
-        readingTime: parseInt(readingTime) || 5,
-        featured: !!featured,
-        author: {
-          connect: { id: "1" }, // Sole author
-        },
-        category: {
-          connect: { id: categoryId },
-        },
-        tags: tags && Array.isArray(tags) ? {
-          connect: tags.map((id: string) => ({ id })),
-        } : undefined,
+        ...input,
+        coverImage: coverImage || DEFAULT_COVER_IMAGE,
+        readingTime: readingTime || estimateReadingTime(input.content),
+        author: { connect: { id: user.id } },
+        category: { connect: { id: categoryId } },
+        tags: { connect: tags.map((id) => ({ id })) },
       },
-      include: {
-        category: true,
-        tags: true,
-      },
+      include: adminPostInclude,
     });
 
-    return NextResponse.json(post);
+    revalidatePath("/", "layout");
+    return NextResponse.json(post, { status: 201 });
   } catch (error) {
-    console.error("Admin API POST post error:", error);
-    return NextResponse.json({ error: "Failed to create post" }, { status: 500 });
+    return handleApiError(error, "create post");
   }
 }

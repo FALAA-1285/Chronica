@@ -1,41 +1,30 @@
 import { NextResponse } from "next/server";
-import { prisma } from "../../../../(frontend)/_lib/db";
+import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/db";
+import { handleApiError, readJson, requireAdmin, type RouteContext } from "@/lib/api";
+import { tagInput } from "@/lib/validation";
 
-export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
+export async function PUT(req: Request, { params }: RouteContext) {
   try {
-    const { id } = await props.params;
-    const body = await req.json();
-    const { name, slug, color } = body;
-
-    if (!name || !slug) {
-      return NextResponse.json({ error: "Name and Slug are required" }, { status: 400 });
-    }
-
-    const tag = await prisma.tag.update({
-      where: { id },
-      data: {
-        name,
-        slug,
-        color: color || "#7B2FBE",
-      },
-    });
-
+    await requireAdmin(req);
+    const { id } = await params;
+    const tag = await prisma.tag.update({ where: { id }, data: await readJson(req, tagInput) });
+    revalidatePath("/", "layout");
     return NextResponse.json(tag);
   } catch (error) {
-    console.error("Admin API PUT tag error:", error);
-    return NextResponse.json({ error: "Failed to update tag" }, { status: 500 });
+    return handleApiError(error, "update tag");
   }
 }
 
-export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
+// Deleting a tag only removes its links to posts; the posts stay.
+export async function DELETE(req: Request, { params }: RouteContext) {
   try {
-    const { id } = await props.params;
-    await prisma.tag.delete({
-      where: { id },
-    });
+    await requireAdmin(req);
+    const { id } = await params;
+    await prisma.tag.delete({ where: { id } });
+    revalidatePath("/", "layout");
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Admin API DELETE tag error:", error);
-    return NextResponse.json({ error: "Failed to delete tag" }, { status: 500 });
+    return handleApiError(error, "delete tag");
   }
 }

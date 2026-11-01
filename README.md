@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Chronica
 
-## Getting Started
+An editorial blog (history, politics, literature, philosophy) with a built-in CMS.
 
-First, run the development server:
+- **Stack:** Next.js 16 (App Router) · React 19 · Prisma 7 with the MariaDB adapter on MySQL/MariaDB · Tailwind CSS 4 · Zod
+- **Public site:** `app/(frontend)` — home, `/blog`, `/blog/[slug]`, `/about`, `/contact`
+- **CMS:** `app/(admin)/custom-admin` — posts (draft/published), categories, tags, music playlist, contact messages, author profile
+- **API:** `app/api` — public (`/api/posts`, `/api/posts/[slug]/like`, `/api/contact`) and admin (`/api/admin/*`, all require a session)
+- **Server code:** `lib/` — data access (`posts.ts`), auth (`auth/`), validation, uploads, rate limiting
+
+## Setup
+
+Requirements: Node.js 22+ (24 recommended) and MySQL 5.7+/MariaDB.
 
 ```bash
+npm install                 # also runs `prisma generate`
+cp .env.example .env        # then fill in DATABASE_URL and SESSION_SECRET
+npm run db:migrate          # applies prisma/migrations
+SEED_ADMIN_EMAIL=you@example.com SEED_ADMIN_PASSWORD='a-long-password' npm run db:seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000, and the CMS at http://localhost:3000/custom-admin.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The seed is idempotent: it only creates rows that are missing and never deletes data.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Scripts
 
-## Learn More
+| Script | What it does |
+| --- | --- |
+| `npm run dev` / `build` / `start` | Next.js dev server, production build, production server |
+| `npm run lint` · `npm run typecheck` · `npm test` | ESLint, TypeScript, unit tests (Vitest) |
+| `npm run db:migrate` | Apply pending migrations (never resets data) |
+| `npm run db:seed` | Create the admin account and starter content if missing |
+| `npm run db:hash-passwords` | One-off: hash any legacy plaintext author passwords |
 
-To learn more about Next.js, take a look at the following resources:
+To change the schema: edit `prisma/schema.prisma`, then `npx prisma migrate dev --name <change>` against a development database.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Security model
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Admin login sets an `httpOnly`, `SameSite=Lax` cookie signed with `SESSION_SECRET`. Every `/api/admin/*` handler calls `requireAdmin()`, which verifies the session against the database and rejects cross-origin writes.
+- Passwords are hashed with scrypt. Changing the password signs out other sessions.
+- Login, contact form and likes are rate-limited in memory (per process — use a shared store such as Redis if you run several instances).
+- Uploads are restricted to known image/audio types, checked by file signature and size, and served with a sandboxing CSP.
 
-## Deploy on Vercel
+## Deployment notes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Uploaded files are written to `public/uploads/` on local disk, which is right for a single server (e.g. Laragon/VPS). On serverless hosts with a read-only filesystem, move uploads to object storage (S3, Vercel Blob, …).
+- Set `NEXT_PUBLIC_SITE_URL` to the public domain so the sitemap and Open Graph links are correct.
