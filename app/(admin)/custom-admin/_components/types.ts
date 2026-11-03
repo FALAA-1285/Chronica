@@ -50,3 +50,13 @@ export interface AdminMessage {
   read: boolean;
   createdAt: string;
 }
+
+export interface AdminComment {
+  id: string;
+  name: string;
+  email: string;
+  content: string;
+  approved: boolean;
+  createdAt: string;
+  post: { id: string; title: string; slug: string };
+}

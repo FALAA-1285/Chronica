@@ -17,6 +17,8 @@ model Author {
   password  String
   avatar    String
   bio       String   @db.Text
+  /// Long-form "About" story, Markdown. Shown as an article on /about.
+  story     String?  @db.MediumText
   twitter   String?
   github    String?
   linkedin  String?
@@ -49,27 +51,45 @@ model Tag {
 }
 
 model Post {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
-  slug        String   @unique
-  excerpt     String   @db.Text
-  content     String   @db.MediumText
+  slug        String    @unique
+  excerpt     String    @db.Text
+  content     String    @db.MediumText
   coverImage  String
   authorId    String
   // Restrict: deleting an author/category must never silently delete articles.
-  author      Author   @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  author      Author    @relation(fields: [authorId], references: [id], onDelete: Restrict)
   categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   tags        Tag[]
-  published   Boolean  @default(true)
-  publishedAt DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  published   Boolean   @default(true)
+  publishedAt DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   readingTime Int
-  featured    Boolean  @default(false)
-  views       Int      @default(0)
-  likes       Int      @default(0)
+  featured    Boolean   @default(false)
+  views       Int       @default(0)
+  likes       Int       @default(0)
+  comments    Comment[]
 
   @@index([published, publishedAt])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  postId    String
+  // Cascade: comments belong to their article and go away with it.
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  name      String
+  /// Never exposed publicly; only visible to the admin.
+  email     String
+  content   String   @db.Text
+  /// Admin can hide a comment without deleting it.
+  approved  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([postId, approved, createdAt])
+  @@index([createdAt])
 }
 
 model Track {

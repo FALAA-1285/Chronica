@@ -72,6 +72,7 @@ export const authorInput = z
     email: z.email("Email tidak valid").max(191),
     avatar: mediaUrl,
     bio: z.string().trim().max(5000).default(""),
+    story: z.string().trim().max(1_000_000).default(""),
     twitter: handle,
     github: handle,
     linkedin: handle,
@@ -98,3 +99,13 @@ export const contactInput = z.object({
 });
 
 export const contactUpdateInput = z.object({ read: z.boolean() });
+
+export const commentInput = z.object({
+  name: varchar("Nama"),
+  email: z.email("Email tidak valid").max(191),
+  content: z.string().trim().min(2, "Komentar minimal 2 karakter").max(2000, "Komentar maksimal 2000 karakter"),
+  /** Honeypot: humans never fill this hidden field. */
+  website: z.string().max(500).optional(),
+});
+
+export const commentUpdateInput = z.object({ approved: z.boolean() });

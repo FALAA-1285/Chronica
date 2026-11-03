@@ -7,12 +7,14 @@ import { Calendar, ChevronLeft, Clock } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { formatDate } from "@/lib/format";
 import { getPostBySlug, getRelatedPosts } from "@/lib/posts";
+import { getApprovedComments } from "@/lib/comments";
 import { ReadingProgress } from "../../_components/ReadingProgress";
 import { TableOfContents } from "../../_components/TableOfContents";
 import { CategoryBadge } from "../../_components/CategoryBadge";
 import { MarkdownContent } from "../../_components/MarkdownContent";
 import { SafeImage } from "../../_components/SafeImage";
 import { LikeButton, ShareButtons } from "../../_components/BlogDetailClients";
+import { CommentSection } from "../../_components/CommentSection";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -40,7 +42,7 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const related = await getRelatedPosts(post);
+  const [related, comments] = await Promise.all([getRelatedPosts(post), getApprovedComments(post.id)]);
 
   // Count the view after the response is sent so it never slows the page down.
   after(() =>
@@ -126,6 +128,8 @@ export default async function BlogPostPage({ params }: Props) {
               <LikeButton slug={post.slug} initialLikes={post.likes} />
               <ShareButtons />
             </div>
+
+            <CommentSection slug={post.slug} initialComments={comments} />
           </article>
 
           <aside className="lg:col-span-4 lg:border-l-3 lg:border-dashed lg:border-black/20 lg:pl-10">

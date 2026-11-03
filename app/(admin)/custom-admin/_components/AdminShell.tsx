@@ -2,16 +2,17 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, FolderHeart, Inbox, LayoutDashboard, LogOut, Music, Newspaper, Sparkles, Tag as TagIcon, User } from "lucide-react";
+import { ArrowLeft, FolderHeart, Inbox, LayoutDashboard, LogOut, MessageCircle, Music, Newspaper, Sparkles, Tag as TagIcon, User } from "lucide-react";
 import type { SessionUser } from "@/lib/auth/session";
 import { useCollection } from "./api";
 import { AuthorTab } from "./AuthorTab";
 import { CategoriesTab } from "./CategoriesTab";
+import { CommentsTab } from "./CommentsTab";
 import { MessagesTab } from "./MessagesTab";
 import { PostsTab } from "./PostsTab";
 import { TagsTab } from "./TagsTab";
 import { TracksTab } from "./TracksTab";
-import type { AdminCategory, AdminMessage, AdminPost, AdminTag, AdminTrack } from "./types";
+import type { AdminCategory, AdminComment, AdminMessage, AdminPost, AdminTag, AdminTrack } from "./types";
 import { FeedbackProvider, Panel } from "./ui";
 
 const TABS = [
@@ -20,6 +21,7 @@ const TABS = [
   { id: "categories", label: "Kategori", Icon: FolderHeart },
   { id: "tags", label: "Tag", Icon: TagIcon },
   { id: "tracks", label: "Musik", Icon: Music },
+  { id: "comments", label: "Komentar", Icon: MessageCircle },
   { id: "messages", label: "Pesan", Icon: Inbox },
   { id: "author", label: "Profil", Icon: User },
 ] as const;
@@ -44,6 +46,7 @@ function Shell({ initialUser }: { initialUser: SessionUser }) {
   const tags = useCollection<AdminTag>("/api/admin/tags");
   const tracks = useCollection<AdminTrack>("/api/admin/tracks");
   const messages = useCollection<AdminMessage>("/api/admin/messages");
+  const comments = useCollection<AdminComment>("/api/admin/comments");
 
   const unread = messages.items.filter((m) => !m.read).length;
 
@@ -59,6 +62,7 @@ function Shell({ initialUser }: { initialUser: SessionUser }) {
     { label: "Kategori", value: categories.items.length, className: "bg-yellow text-black", Icon: FolderHeart },
     { label: "Tag", value: tags.items.length, className: "bg-purple text-white", Icon: TagIcon },
     { label: "Lagu", value: tracks.items.length, className: "bg-orange text-black", Icon: Music },
+    { label: "Komentar", value: comments.items.length, className: "bg-electric-blue text-white", Icon: MessageCircle },
     { label: "Pesan belum dibaca", value: unread, className: "bg-neon-green text-black", Icon: Inbox },
   ];
 
@@ -126,7 +130,7 @@ function Shell({ initialUser }: { initialUser: SessionUser }) {
 
         {activeTab === "dashboard" && (
           <div className="flex flex-col gap-8">
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-7 gap-4">
               {stats.map(({ label, value, className, Icon }) => (
                 <div key={label} className={`border-3 border-black p-4 rounded-lg shadow-[4px_4px_0px_#000] flex flex-col justify-between h-32 ${className}`}>
                   <Icon className="h-6 w-6" aria-hidden="true" />
@@ -139,7 +143,7 @@ function Shell({ initialUser }: { initialUser: SessionUser }) {
             </div>
             <Panel title={`Selamat datang, ${user.name}`} className="bg-cream">
               <p className="font-semibold text-black/85 text-sm sm:text-base leading-relaxed max-w-3xl">
-                Kelola artikel, kategori, tag, playlist musik, dan pesan dari pengunjung di sini. Artikel yang ditandai &ldquo;Terbitkan&rdquo; langsung tampil di
+                Kelola artikel, kategori, tag, playlist musik, komentar, dan pesan dari pengunjung di sini. Artikel yang ditandai &ldquo;Terbitkan&rdquo; langsung tampil di
                 situs; artikel draf hanya terlihat di CMS.
               </p>
             </Panel>
@@ -150,6 +154,7 @@ function Shell({ initialUser }: { initialUser: SessionUser }) {
         {activeTab === "categories" && <CategoriesTab categories={categories} />}
         {activeTab === "tags" && <TagsTab tags={tags} />}
         {activeTab === "tracks" && <TracksTab tracks={tracks} />}
+        {activeTab === "comments" && <CommentsTab comments={comments} />}
         {activeTab === "messages" && <MessagesTab messages={messages} />}
         {activeTab === "author" && <AuthorTab onProfileSaved={setUser} />}
       </main>

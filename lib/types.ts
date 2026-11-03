@@ -3,6 +3,8 @@ export interface Author {
   name: string;
   avatar: string;
   bio: string;
+  /** Long-form Markdown story for the About page. */
+  story: string;
   social: {
     twitter?: string;
     github?: string;

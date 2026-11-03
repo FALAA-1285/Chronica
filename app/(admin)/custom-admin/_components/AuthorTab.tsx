@@ -7,8 +7,8 @@ import { apiRequest } from "./api";
 import { MediaUploader } from "./MediaUploader";
 import { Field, inputClass, Panel, SubmitButton, useFeedback } from "./ui";
 
-const EMPTY = { name: "", email: "", avatar: "", bio: "", twitter: "", github: "", linkedin: "", currentPassword: "", newPassword: "" };
-type Profile = Omit<typeof EMPTY, "currentPassword" | "newPassword">;
+const EMPTY = { name: "", email: "", avatar: "", bio: "", story: "", twitter: "", github: "", linkedin: "", currentPassword: "", newPassword: "" };
+type Profile = Omit<typeof EMPTY, "currentPassword" | "newPassword" | "story"> & { story: string | null };
 
 export function AuthorTab({ onProfileSaved }: { onProfileSaved: (user: SessionUser) => void }) {
   const { notify } = useFeedback();
@@ -26,6 +26,7 @@ export function AuthorTab({ onProfileSaved }: { onProfileSaved: (user: SessionUs
           email: author.email,
           avatar: author.avatar,
           bio: author.bio,
+          story: author.story ?? "",
           twitter: author.twitter ?? "",
           github: author.github ?? "",
           linkedin: author.linkedin ?? "",
@@ -71,8 +72,15 @@ export function AuthorTab({ onProfileSaved }: { onProfileSaved: (user: SessionUs
 
           <MediaUploader label="Foto Profil" kind="image" required value={form.avatar} onChange={(url) => setForm((prev) => ({ ...prev, avatar: url }))} />
 
-          <Field label="Biografi">
+          <Field label="Biografi Singkat" hint="Ringkasan singkat; tampil sebagai pembuka di halaman Tentang dan untuk deskripsi SEO.">
             <textarea value={form.bio} maxLength={5000} onChange={set("bio")} className={`${inputClass} h-32 resize-y text-sm`} />
+          </Field>
+
+          <Field
+            label="Cerita Lengkap (halaman Tentang)"
+            hint="Ditampilkan sebagai artikel. Mendukung Markdown: ## Judul bagian, **tebal**, *miring*, > kutipan, - daftar, ![gambar](url)."
+          >
+            <textarea value={form.story} onChange={set("story")} className={`${inputClass} h-[28rem] resize-y font-mono text-sm leading-relaxed`} />
           </Field>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

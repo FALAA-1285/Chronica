@@ -13,6 +13,7 @@ const profileSelect = {
   email: true,
   avatar: true,
   bio: true,
+  story: true,
   twitter: true,
   github: true,
   linkedin: true,
@@ -48,6 +49,7 @@ export async function PUT(req: Request) {
       where: { id: user.id },
       data: {
         ...profile,
+        story: profile.story || null,
         twitter: profile.twitter || null,
         github: profile.github || null,
         linkedin: profile.linkedin || null,

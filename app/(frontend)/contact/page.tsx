@@ -1,8 +1,8 @@
 import React from "react";
 import type { Metadata } from "next";
-import { Mail } from "lucide-react";
 import { getSiteAuthor } from "@/lib/posts";
 import { getSocialLinks, SocialLinks } from "../_components/SocialLinks";
+import { PageHero } from "../_components/PageHero";
 import { ContactForm } from "./ContactForm";
 
 export const metadata: Metadata = {
@@ -15,17 +15,16 @@ export default async function ContactPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-20">
-      <section className="border-b-3 border-black bg-yellow py-12 lg:py-16 text-black">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <Mail className="h-10 w-10 sm:h-12 sm:w-12 text-black" aria-hidden="true" />
-            <h1 className="text-display text-4xl sm:text-6xl lg:text-7xl tracking-tight uppercase">Get in Touch</h1>
-          </div>
-          <p className="font-extrabold text-sm sm:text-base max-w-xl mt-3 text-black/75">
-            Have a question, a correction, or an idea for a story? Send a message and it goes straight to the editor.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        image="/images/hero-contact.jpg"
+        imagePosition="center 45%"
+        badge="Kontak"
+        title="Mari ngobrol,"
+        highlight="kirim kabar."
+        highlightClass="bg-neon-green text-black"
+        description="Punya pertanyaan, koreksi, atau ide cerita? Kirim pesan dan langsung sampai ke meja redaksi."
+        ticker="• KIRIM KABAR • SURAT • KOLABORASI • IDE CERITA • NGOPI • CHRONICA •"
+      />
 
       <section className="mt-16">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">

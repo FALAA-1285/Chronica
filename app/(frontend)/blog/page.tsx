@@ -4,13 +4,12 @@ import { getDailyQuote } from "@/lib/constants";
 import { getCategoriesWithCount, getPopularPosts, getPostSummaries, getSiteAuthor } from "@/lib/posts";
 import { LatestArticles, LatestArticlesSkeleton } from "../_components/LatestArticles";
 import { Sidebar } from "../_components/Sidebar";
+import { PageHero } from "../_components/PageHero";
 
 export const metadata: Metadata = {
-  title: "The Archives",
-  description: "Browse all essays, historical chronicles, geopolitical analyses, and classical literature critiques.",
+  title: "Arsip Blog | Chronica",
+  description: "Mengabadikan hidup lewat kata — jelajahi opini, musik, buku, dan movie.",
 };
-
-const TICKER = "• EXPLORE HISTORY • ANALYZE POLITICS • CLASSIC LITERATURE • PHILOSOPHY • ANCIENT WISDOM";
 
 export default async function BlogPage() {
   const [posts, categories, popular, author] = await Promise.all([
@@ -22,22 +21,20 @@ export default async function BlogPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      <section className="border-b-3 border-black bg-yellow py-12 lg:py-16 text-black overflow-hidden relative">
-        <div className="absolute top-0 left-0 right-0 h-8 border-b-2 border-black bg-black text-white flex items-center overflow-hidden" aria-hidden="true">
-          <div className="marquee-track font-mono text-xs font-bold uppercase tracking-wider py-1 flex gap-20">
-            {Array.from({ length: 4 }, (_, i) => (
-              <span key={i}>{TICKER}</span>
-            ))}
-          </div>
-        </div>
-
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
-          <h1 className="text-display text-4xl sm:text-6xl lg:text-7xl tracking-tight uppercase">The Archives</h1>
-          <p className="font-extrabold text-sm sm:text-base max-w-xl mt-3 text-black/75">
-            Curated historical chronicles, political analyses, critiques of classical literary masterpieces, and deep philosophical reflections.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        image="/images/hero-blog.jpg"
+        imagePosition="center 35%"
+        badge="Arsip & Catatan"
+        title={
+          <>
+            Mengabadikan <br className="hidden sm:inline" />
+            hidup lewat
+          </>
+        }
+        highlight="kata."
+        description="Kumpulan catatan, esai opini, ulasan buku, apresiasi musik, dan telaah sinema untuk merawat ingatan."
+        ticker="• MENGABADIKAN HIDUP LEWAT KATA • OPINI • MUSIK • BUKU • MOVIE • CHRONICA •"
+      />
 
       <section className="py-16 bg-white border-b-3 border-black">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

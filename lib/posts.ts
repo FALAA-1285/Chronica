@@ -10,6 +10,7 @@ const authorPublicSelect = {
   name: true,
   avatar: true,
   bio: true,
+  story: true,
   twitter: true,
   github: true,
   linkedin: true,
@@ -51,6 +52,7 @@ function toAuthor(row: AuthorRow): Author {
     name: row.name,
     avatar: row.avatar,
     bio: row.bio,
+    story: row.story ?? "",
     social: {
       twitter: row.twitter || undefined,
       github: row.github || undefined,

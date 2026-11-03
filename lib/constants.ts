@@ -3,7 +3,17 @@ export const SITE_NAME = "Chronica";
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
 
 /** Icons selectable for a category (rendered by CategoryIcon). */
-export const CATEGORY_ICONS = ["BookOpen", "Globe", "PenTool", "Compass", "Sparkles", "Users"] as const;
+export const CATEGORY_ICONS = [
+  "BookOpen",
+  "Globe",
+  "PenTool",
+  "Compass",
+  "Sparkles",
+  "Users",
+  "MessageSquare",
+  "Music",
+  "Film",
+] as const;
 export type CategoryIconName = (typeof CATEGORY_ICONS)[number];
 
 export const QUOTES = [

@@ -13,10 +13,10 @@ export const CategoriesSection = ({ categories }: { categories: Category[] }) =>
           <div className="flex h-10 w-10 items-center justify-center border-2 border-black bg-yellow text-black shadow-[2px_2px_0px_#0A0A0A]">
             <FolderHeart className="h-5 w-5" aria-hidden="true" />
           </div>
-          <h2 className="text-display text-2xl sm:text-4xl uppercase text-black">Explore Categories</h2>
+          <h2 className="text-display text-2xl sm:text-4xl uppercase text-black">Jelajahi Kategori</h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {categories.map((category) => (
             <CategoryCard key={category.id} category={category} />
           ))}

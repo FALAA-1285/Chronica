@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { checkUpload, extractUploadUrls } from "@/lib/upload-rules";
 import { rateLimit } from "@/lib/rate-limit";
-import { authorInput, categoryInput, contactInput, postInput, trackInput } from "@/lib/validation";
+import { authorInput, categoryInput, commentInput, contactInput, postInput, trackInput } from "@/lib/validation";
 
 const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0, 0, 0, 0, 0]);
 const mp3 = Buffer.concat([Buffer.from("ID3"), Buffer.alloc(13)]);
@@ -77,5 +77,19 @@ describe("validation", () => {
     expect(trackInput.safeParse({ title: "T", artist: "A", audioUrl: "ftp://x/a.mp3" }).success).toBe(false);
     expect(contactInput.safeParse({ name: "N", email: "not-an-email", message: "long enough message" }).success).toBe(false);
     expect(contactInput.safeParse({ name: "N", email: "n@x.co", message: "too short" }).success).toBe(false);
+  });
+});
+
+describe("commentInput", () => {
+  it("accepts a normal comment and trims it", () => {
+    const parsed = commentInput.parse({ name: " Budi ", email: "budi@example.com", content: "  Artikel bagus!  " });
+    expect(parsed).toMatchObject({ name: "Budi", content: "Artikel bagus!" });
+  });
+
+  it("rejects empty, too long, or invalid input", () => {
+    expect(commentInput.safeParse({ name: "Budi", email: "budi@example.com", content: " " }).success).toBe(false);
+    expect(commentInput.safeParse({ name: "Budi", email: "budi@example.com", content: "x".repeat(2001) }).success).toBe(false);
+    expect(commentInput.safeParse({ name: "Budi", email: "not-an-email", content: "Halo" }).success).toBe(false);
+    expect(commentInput.safeParse({ name: "", email: "budi@example.com", content: "Halo" }).success).toBe(false);
   });
 });

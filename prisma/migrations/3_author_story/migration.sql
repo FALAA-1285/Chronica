@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `Author` ADD COLUMN `story` MEDIUMTEXT NULL;
