@@ -1,9 +1,9 @@
+/** List shape: no Markdown body (see AdminPostDetail). */
 export interface AdminPost {
   id: string;
   title: string;
   slug: string;
   excerpt: string;
-  content: string;
   coverImage: string;
   readingTime: number;
   featured: boolean;
@@ -12,6 +12,10 @@ export interface AdminPost {
   categoryId: string;
   category: { id: string; name: string };
   tags: { id: string; name: string }[];
+}
+
+export interface AdminPostDetail extends AdminPost {
+  content: string;
 }
 
 export interface AdminCategory {

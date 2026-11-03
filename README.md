@@ -1,49 +1,66 @@
 # Chronica
 
-An editorial blog (history, politics, literature, philosophy) with a built-in CMS.
+Blog editorial (opini, musik, buku, film) dengan CMS bawaan.
 
-- **Stack:** Next.js 16 (App Router) · React 19 · Prisma 7 with the MariaDB adapter on MySQL/MariaDB · Tailwind CSS 4 · Zod
-- **Public site:** `app/(frontend)` — home, `/blog`, `/blog/[slug]`, `/about`, `/contact`
-- **CMS:** `app/(admin)/custom-admin` — posts (draft/published), categories, tags, music playlist, contact messages, author profile
-- **API:** `app/api` — public (`/api/posts`, `/api/posts/[slug]/like`, `/api/contact`) and admin (`/api/admin/*`, all require a session)
-- **Server code:** `lib/` — data access (`posts.ts`), auth (`auth/`), validation, uploads, rate limiting
+- **Stack:** Next.js 16 (App Router) · React 19 · Prisma 7 + adapter MariaDB di MySQL/MariaDB · Tailwind CSS 4 · Zod
+- **Situs publik:** `app/(frontend)`: beranda, `/blog`, `/blog/[slug]` (dengan komentar), `/about`, `/contact`
+- **CMS:** `app/(admin)/custom-admin`: artikel (draf/terbit), kategori, tag, playlist musik, moderasi komentar, pesan kontak, profil & cerita halaman Tentang
+- **API:** `app/api`. Publik: `/api/posts` (daftar, pencarian, pagination), `/api/posts/[slug]/like`, `/api/posts/[slug]/comments`, `/api/contact`. Admin: `/api/admin/*`, semuanya wajib sesi.
+- **Kode server:** `lib/`: akses data (`posts.ts`, `comments.ts`), auth (`auth/`), validasi, upload, rate limiting, hitungan views
 
 ## Setup
 
-Requirements: Node.js 22+ (24 recommended) and MySQL 5.7+/MariaDB.
+Kebutuhan: Node.js 22+ (disarankan 24) dan MySQL 5.7+/MariaDB.
 
 ```bash
-npm install                 # also runs `prisma generate`
-cp .env.example .env        # then fill in DATABASE_URL and SESSION_SECRET
-npm run db:migrate          # applies prisma/migrations
-SEED_ADMIN_EMAIL=you@example.com SEED_ADMIN_PASSWORD='a-long-password' npm run db:seed
+npm install                 # sekaligus menjalankan `prisma generate`
+cp .env.example .env        # isi DATABASE_URL dan SESSION_SECRET
+npm run db:migrate          # menerapkan prisma/migrations
+SEED_ADMIN_EMAIL=you@example.com SEED_ADMIN_PASSWORD='password-panjang' npm run db:seed
 npm run dev
 ```
 
-Open http://localhost:3000, and the CMS at http://localhost:3000/custom-admin.
+Buka http://localhost:3000, dan CMS di http://localhost:3000/custom-admin.
 
-The seed is idempotent: it only creates rows that are missing and never deletes data.
+Seed bersifat idempoten: hanya membuat baris yang belum ada dan tidak pernah menghapus data.
+
+> Setelah `db:migrate` atau perubahan `schema.prisma`, **restart `npm run dev`**: server yang sedang berjalan masih memakai Prisma client lama.
 
 ## Scripts
 
-| Script | What it does |
+| Script | Fungsi |
 | --- | --- |
-| `npm run dev` / `build` / `start` | Next.js dev server, production build, production server |
-| `npm run lint` · `npm run typecheck` · `npm test` | ESLint, TypeScript, unit tests (Vitest) |
-| `npm run db:migrate` | Apply pending migrations (never resets data) |
-| `npm run db:seed` | Create the admin account and starter content if missing |
-| `npm run db:hash-passwords` | One-off: hash any legacy plaintext author passwords |
+| `npm run dev` / `build` / `start` | Server dev Next.js, build produksi, server produksi |
+| `npm run lint` · `npm run typecheck` · `npm test` | ESLint, TypeScript, unit & API test (Vitest, tanpa database) |
+| `npm run test:e2e` | Smoke test end-to-end terhadap server yang berjalan (lihat di bawah) |
+| `npm run db:migrate` | Terapkan migrasi yang belum jalan (tidak pernah mereset data) |
+| `npm run db:seed` | Buat akun admin dan konten awal bila belum ada |
+| `npm run db:hash-passwords` | Sekali jalan: hash password lama yang masih plaintext |
+| `npm run uploads:clean` | Daftar berkas upload yatim (>24 jam, tak dirujuk). Tambah `-- --apply` untuk menghapus |
 
-To change the schema: edit `prisma/schema.prisma`, then `npx prisma migrate dev --name <change>` against a development database.
+Untuk mengubah schema: edit `prisma/schema.prisma`, lalu `npx prisma migrate dev --name <perubahan>` pada database development.
 
-## Security model
+### Smoke test end-to-end
 
-- Admin login sets an `httpOnly`, `SameSite=Lax` cookie signed with `SESSION_SECRET`. Every `/api/admin/*` handler calls `requireAdmin()`, which verifies the session against the database and rejects cross-origin writes.
-- Passwords are hashed with scrypt. Changing the password signs out other sessions.
-- Login, contact form and likes are rate-limited in memory (per process — use a shared store such as Redis if you run several instances).
-- Uploads are restricted to known image/audio types, checked by file signature and size, and served with a sandboxing CSP.
+```bash
+npm run build && npx next start -p 3005
+E2E_BASE_URL=http://localhost:3005 npm run test:e2e
+```
 
-## Deployment notes
+Script ini membuat artikel sementara berlabel `[UJI E2E]` di kategori uji, menguji daftar, pagination, pencarian, halaman artikel, views, komentar, like, moderasi admin, dan logout, lalu **menghapus semua data ujinya**. Pengujian logout mencabut sesi admin yang ada, jadi Anda perlu login ulang.
 
-- Uploaded files are written to `public/uploads/` on local disk, which is right for a single server (e.g. Laragon/VPS). On serverless hosts with a read-only filesystem, move uploads to object storage (S3, Vercel Blob, …).
-- Set `NEXT_PUBLIC_SITE_URL` to the public domain so the sitemap and Open Graph links are correct.
+## Model keamanan
+
+- Login admin menyetel cookie `httpOnly`, `SameSite=Lax` yang ditandatangani `SESSION_SECRET`. Setiap handler `/api/admin/*` memanggil `requireAdmin()`, yang memverifikasi sesi ke database dan menolak penulisan lintas origin.
+- Password di-hash dengan scrypt. Mengganti password mengeluarkan sesi lain; **logout mencabut semua token** lewat `Author.sessionVersion`.
+- Rate limiting berlapis (`lib/rate-limit.ts` → `LIMITS`): per IP **dan** batas yang tidak bergantung IP (per email untuk login, per artikel / seluruh situs untuk komentar, kontak, dan like). Jadi memalsukan `X-Forwarded-For` tidak cukup untuk menembusnya.
+  - Di belakang nginx/Apache, set `TRUST_PROXY=1` dan `proxy_set_header X-Real-IP $remote_addr;` agar IP klien akurat.
+  - Limiter disimpan di memori per proses; jika menjalankan beberapa instance, gunakan store bersama (mis. Redis).
+- Views dihitung sekali per pengunjung per artikel per hari; bot diabaikan.
+- Upload dibatasi tipe gambar/audio tertentu, dicek magic bytes dan ukurannya, dan disajikan dengan CSP sandbox. Berkas lama dihapus hanya bila tak ada baris yang merujuknya (termasuk cerita halaman Tentang).
+- Komentar: email tidak pernah ditampilkan publik; ada honeypot anti-bot; admin dapat menyembunyikan atau menghapus.
+
+## Catatan deployment
+
+- Berkas upload ditulis ke `public/uploads/` di disk lokal, cocok untuk satu server (Laragon/VPS). Di host serverless dengan filesystem read-only, pindahkan upload ke object storage (S3, Vercel Blob, …).
+- Set `NEXT_PUBLIC_SITE_URL` ke domain publik agar sitemap dan tautan Open Graph benar.

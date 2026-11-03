@@ -7,6 +7,8 @@ export interface SessionPayload {
   sub: string;
   /** Fingerprint of the password hash: changing the password revokes old sessions. */
   pwd: string;
+  /** Author.sessionVersion at login: logging out bumps it and revokes old tokens. */
+  ver: number;
   /** Expiry, unix seconds */
   exp: number;
 }
@@ -27,10 +29,11 @@ export function passwordFingerprint(passwordHash: string): string {
   return createHash("sha256").update(passwordHash).digest("base64url").slice(0, 16);
 }
 
-export function createSessionToken(authorId: string, passwordHash: string, now = Date.now()): string {
+export function createSessionToken(authorId: string, passwordHash: string, sessionVersion: number, now = Date.now()): string {
   const payload: SessionPayload = {
     sub: authorId,
     pwd: passwordFingerprint(passwordHash),
+    ver: sessionVersion,
     exp: Math.floor(now / 1000) + SESSION_TTL_SECONDS,
   };
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -48,7 +51,7 @@ export function readSessionToken(token: string, now = Date.now()): SessionPayloa
 
   try {
     const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as SessionPayload;
-    if (typeof payload.sub !== "string" || typeof payload.pwd !== "string") return null;
+    if (typeof payload.sub !== "string" || typeof payload.pwd !== "string" || typeof payload.ver !== "number") return null;
     if (typeof payload.exp !== "number" || payload.exp * 1000 < now) return null;
     return payload;
   } catch {

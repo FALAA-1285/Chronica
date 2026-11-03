@@ -5,10 +5,10 @@ import type { Author } from "@/lib/types";
 import { SocialLinks } from "./SocialLinks";
 
 const FOOTER_LINKS = [
-  { name: "Home", href: "/" },
-  { name: "All Articles", href: "/blog" },
-  { name: "About", href: "/about" },
-  { name: "Contact", href: "/contact" },
+  { name: "Beranda", href: "/" },
+  { name: "Semua Artikel", href: "/blog" },
+  { name: "Tentang", href: "/about" },
+  { name: "Kontak", href: "/contact" },
 ];
 
 export const Footer = ({ author }: { author: Author | null }) => {
@@ -24,7 +24,7 @@ export const Footer = ({ author }: { author: Author | null }) => {
               </div>
             </Link>
             <p className="max-w-md font-semibold text-black/75 text-base mt-2">
-              An editorial blog exploring world history, geopolitical forces, classical literature, and ancient philosophy.
+              Ruang kurasi tulisan editorial seputar opini kritis, ulasan musik, bedah buku sastra, dan analisis sinema.
             </p>
             <div className="mt-4">
               <SocialLinks social={author?.social} />
@@ -32,7 +32,7 @@ export const Footer = ({ author }: { author: Author | null }) => {
           </div>
 
           <nav aria-label="Footer" className="flex flex-col gap-4">
-            <h3 className="font-black text-lg uppercase border-b-2 border-black w-fit pb-1 text-black">Navigation</h3>
+            <h3 className="font-black text-lg uppercase border-b-2 border-black w-fit pb-1 text-black">Navigasi</h3>
             <ul className="flex flex-col gap-2 font-bold text-black/80 text-sm">
               {FOOTER_LINKS.map((link) => (
                 <li key={link.href}>
@@ -47,8 +47,8 @@ export const Footer = ({ author }: { author: Author | null }) => {
 
         <div className="border-t-2 border-black pt-8 font-mono text-sm text-black/60">
           <p>
-            Built by Falaa · © {new Date().getFullYear()} Chronica
-            {author ? ` · Written by ${author.name}` : ""}
+            Dibuat oleh Falaa · © {new Date().getFullYear()} Chronica
+            {author ? ` · Ditulis oleh ${author.name}` : ""}
           </p>
         </div>
       </div>

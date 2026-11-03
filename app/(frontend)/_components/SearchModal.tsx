@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Command, CornerDownLeft, FileText, Search, X } from "lucide-react";
 import type { PostSummary } from "@/lib/types";
+import { useFocusTrap } from "@/lib/use-focus-trap";
 
 export const OPEN_SEARCH_EVENT = "open-search-modal";
 
@@ -18,6 +19,7 @@ export const SearchModal = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const modalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  useFocusTrap(modalRef, isOpen);
 
   useEffect(() => {
     const open = () => setIsOpen(true);
@@ -45,7 +47,8 @@ export const SearchModal = () => {
         const limit = query.trim() ? 8 : 3;
         const res = await fetch(`/api/posts?limit=${limit}&q=${encodeURIComponent(query.trim())}`, { signal: controller.signal });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        setResults(await res.json());
+        const page: { posts: PostSummary[] } = await res.json();
+        setResults(page.posts);
         setSelectedIndex(0);
         setStatus("idle");
       } catch (error) {
@@ -103,7 +106,7 @@ export const SearchModal = () => {
             onKeyDown={handleKeyDown}
             role="dialog"
             aria-modal="true"
-            aria-label="Search articles"
+            aria-label="Cari artikel"
             className="w-full max-w-2xl border-3 border-black bg-cream shadow-[8px_8px_0px_#0A0A0A] overflow-hidden"
           >
             <div className="relative flex items-center border-b-3 border-black p-4">
@@ -113,14 +116,14 @@ export const SearchModal = () => {
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Type to search articles..."
-                aria-label="Search articles"
+                placeholder="Ketik untuk mencari artikel..."
+                aria-label="Cari artikel"
                 className="w-full bg-transparent text-xl font-bold text-black outline-none placeholder-black/45"
               />
               <button
                 type="button"
                 onClick={handleClose}
-                aria-label="Close search"
+                aria-label="Tutup pencarian"
                 className="flex h-8 w-8 shrink-0 items-center justify-center border-2 border-black bg-coral text-white shadow-[2px_2px_0px_#0A0A0A] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
               >
                 <X className="h-4.5 w-4.5" />
@@ -129,10 +132,10 @@ export const SearchModal = () => {
 
             <div className="max-h-[350px] overflow-y-auto p-4 flex flex-col gap-2" aria-live="polite">
               {status === "error" ? (
-                <p className="py-8 text-center font-bold text-coral">Search is unavailable right now. Please try again.</p>
+                <p className="py-8 text-center font-bold text-coral">Pencarian sedang tidak tersedia. Silakan coba lagi.</p>
               ) : results.length > 0 ? (
                 <>
-                  {!hasQuery && <p className="text-xs font-mono font-bold text-black/50 uppercase">Latest stories</p>}
+                  {!hasQuery && <p className="text-xs font-mono font-bold text-black/50 uppercase">Tulisan terbaru</p>}
                   {results.map((post, index) => {
                     const active = hasQuery && index === selectedIndex;
                     return hasQuery ? (
@@ -178,14 +181,14 @@ export const SearchModal = () => {
                   })}
                 </>
               ) : status === "loading" ? (
-                <p className="py-8 text-center font-bold text-black/50">Searching…</p>
+                <p className="py-8 text-center font-bold text-black/50">Mencari…</p>
               ) : hasQuery ? (
                 <div className="py-8 text-center border-2 border-dashed border-black/40 rounded">
-                  <p className="font-bold text-lg text-black/60">No results found for &ldquo;{query}&rdquo;</p>
-                  <p className="text-sm font-semibold text-black/40 mt-1">Try searching for another topic.</p>
+                  <p className="font-bold text-lg text-black/60">Tidak ada hasil untuk &ldquo;{query}&rdquo;</p>
+                  <p className="text-sm font-semibold text-black/40 mt-1">Coba kata kunci lain.</p>
                 </div>
               ) : (
-                <p className="py-8 text-center font-bold text-black/50">No articles published yet.</p>
+                <p className="py-8 text-center font-bold text-black/50">Belum ada artikel yang terbit.</p>
               )}
             </div>
 
@@ -193,15 +196,15 @@ export const SearchModal = () => {
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1">
                   <kbd className="px-1.5 py-0.5 border border-black bg-white rounded">↑↓</kbd>
-                  <span>Navigate</span>
+                  <span>Pilih</span>
                 </span>
                 <span className="flex items-center gap-1">
                   <kbd className="px-1.5 py-0.5 border border-black bg-white rounded">Enter</kbd>
-                  <span>Select</span>
+                  <span>Buka</span>
                 </span>
                 <span className="flex items-center gap-1">
                   <kbd className="px-1.5 py-0.5 border border-black bg-white rounded">ESC</kbd>
-                  <span>Close</span>
+                  <span>Tutup</span>
                 </span>
               </div>
               <span className="flex items-center gap-1">

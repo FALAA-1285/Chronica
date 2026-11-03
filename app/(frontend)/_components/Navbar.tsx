@@ -8,10 +8,10 @@ import { BookOpen, Menu, Search, X } from "lucide-react";
 import { OPEN_SEARCH_EVENT } from "./SearchModal";
 
 const NAV_LINKS = [
-  { name: "Home", href: "/" },
+  { name: "Beranda", href: "/" },
   { name: "Blog", href: "/blog" },
-  { name: "About", href: "/about" },
-  { name: "Contact", href: "/contact" },
+  { name: "Tentang", href: "/about" },
+  { name: "Kontak", href: "/contact" },
 ];
 
 export const Navbar = () => {
@@ -25,14 +25,14 @@ export const Navbar = () => {
     <header className="sticky top-0 z-50 w-full border-b-2 border-black bg-cream/90 backdrop-blur-md py-3">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-12 items-center justify-between">
-          <Link href="/" className="group flex items-center gap-2" aria-label="Chronica home">
+          <Link href="/" className="group flex items-center gap-2" aria-label="Beranda Chronica">
             <div className="flex h-10 items-center justify-center border-2 border-black bg-yellow px-3 font-mono text-lg font-black uppercase tracking-tight shadow-[2px_2px_0px_#000] group-hover:translate-x-[-1px] group-hover:translate-y-[-1px] group-hover:shadow-[4px_4px_0px_#000] transition-all">
               <BookOpen className="mr-1.5 h-4 w-4" aria-hidden="true" />
               <span>Chronica</span>
             </div>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1" aria-label="Main">
+          <nav className="hidden md:flex items-center gap-1" aria-label="Utama">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.name}
@@ -54,8 +54,8 @@ export const Navbar = () => {
               type="button"
               onClick={openSearch}
               className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center border-2 border-black bg-white text-black hover:bg-yellow shadow-[2px_2px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
-              aria-label="Search posts (Ctrl+K)"
-              title="Search posts (Ctrl+K)"
+              aria-label="Cari artikel (Ctrl+K)"
+              title="Cari artikel (Ctrl+K)"
             >
               <Search className="h-5 w-5" />
             </button>
@@ -63,7 +63,7 @@ export const Navbar = () => {
               type="button"
               onClick={() => setIsOpen((open) => !open)}
               className="flex md:hidden h-9 w-9 items-center justify-center border-2 border-black bg-yellow text-black shadow-[2px_2px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-              aria-label={isOpen ? "Close menu" : "Open menu"}
+              aria-label={isOpen ? "Tutup menu" : "Buka menu"}
               aria-expanded={isOpen}
               aria-controls="mobile-menu"
             >
@@ -77,7 +77,7 @@ export const Navbar = () => {
         {isOpen && (
           <motion.nav
             id="mobile-menu"
-            aria-label="Mobile"
+            aria-label="Menu seluler"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}

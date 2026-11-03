@@ -12,7 +12,9 @@
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "prisma db seed",
-    "db:hash-passwords": "tsx prisma/scripts/hash-plaintext-passwords.ts"
+    "db:hash-passwords": "tsx prisma/scripts/hash-plaintext-passwords.ts",
+    "uploads:clean": "tsx prisma/scripts/clean-orphan-uploads.ts",
+    "test:e2e": "tsx prisma/scripts/e2e-smoke.ts"
   },
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.10.1",

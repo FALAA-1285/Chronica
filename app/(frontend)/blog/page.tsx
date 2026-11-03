@@ -1,19 +1,23 @@
-import React, { Suspense } from "react";
+import React from "react";
 import type { Metadata } from "next";
 import { getDailyQuote } from "@/lib/constants";
-import { getCategoriesWithCount, getPopularPosts, getPostSummaries, getSiteAuthor } from "@/lib/posts";
-import { LatestArticles, LatestArticlesSkeleton } from "../_components/LatestArticles";
+import { getCategoriesWithCount, getPopularPosts, getSiteAuthor, listPosts } from "@/lib/posts";
+import { LatestArticles } from "../_components/LatestArticles";
 import { Sidebar } from "../_components/Sidebar";
 import { PageHero } from "../_components/PageHero";
 
 export const metadata: Metadata = {
-  title: "Arsip Blog | Chronica",
+  title: "Arsip Blog",
   description: "Mengabadikan hidup lewat kata — jelajahi opini, musik, buku, dan movie.",
 };
 
-export default async function BlogPage() {
-  const [posts, categories, popular, author] = await Promise.all([
-    getPostSummaries(),
+type Props = { searchParams: Promise<{ category?: string | string[] }> };
+
+export default async function BlogPage({ searchParams }: Props) {
+  const { category: rawCategory } = await searchParams;
+  const category = typeof rawCategory === "string" ? rawCategory : "";
+  const [firstPage, categories, popular, author] = await Promise.all([
+    listPosts({ category }),
     getCategoriesWithCount(),
     getPopularPosts(),
     getSiteAuthor(),
@@ -40,9 +44,7 @@ export default async function BlogPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <div className="lg:col-span-8">
-              <Suspense fallback={<LatestArticlesSkeleton />}>
-                <LatestArticles posts={posts} categories={categories} />
-              </Suspense>
+              <LatestArticles key={category} initialPage={firstPage} categories={categories} category={category} />
             </div>
             <div className="lg:col-span-4 lg:border-l-3 lg:border-dashed lg:border-black/25 lg:pl-10">
               <Sidebar popular={popular} author={author} quote={getDailyQuote()} />

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { z, ZodError, type ZodType } from "zod";
 import { getSessionUser, type SessionUser } from "@/lib/auth/session";
+import { enforceLimits, type LimitRule } from "@/lib/rate-limit";
 
 export class ApiError extends Error {
   constructor(
@@ -51,6 +52,14 @@ export async function readJson<T>(req: Request, schema: ZodType<T>): Promise<T> 
   return schema.parse(body);
 }
 
+/** Throws a 429 with Retry-After when any of the rules is exceeded. */
+export function assertWithinLimits(rules: LimitRule[], message: (retryAfterSeconds: number) => string) {
+  const result = enforceLimits(rules);
+  if (!result.ok) {
+    throw new ApiError(429, message(result.retryAfterSeconds), { "Retry-After": String(result.retryAfterSeconds) });
+  }
+}
+
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 /**
@@ -61,13 +70,22 @@ const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 export async function requireAdmin(req: Request): Promise<SessionUser> {
   if (!SAFE_METHODS.has(req.method)) {
     const origin = req.headers.get("origin");
-    if (origin && new URL(origin).host !== new URL(req.url).host) {
+    if (origin && !isSameOrigin(origin, req.url)) {
       throw new ApiError(403, "Permintaan lintas origin ditolak.");
     }
   }
   const user = await getSessionUser();
   if (!user) throw new ApiError(401, "Silakan login terlebih dahulu.");
   return user;
+}
+
+/** False for other hosts and for unparsable origins such as "null". */
+export function isSameOrigin(origin: string, requestUrl: string): boolean {
+  try {
+    return new URL(origin).host === new URL(requestUrl).host;
+  } catch {
+    return false;
+  }
 }
 
 export type RouteContext = { params: Promise<{ id: string }> };

@@ -38,7 +38,7 @@ export const LikeButton = ({ slug, initialLikes }: { slug: string; initialLikes:
         // storage unavailable: the button just won't remember across visits
       }
     } catch {
-      setError("Couldn't save your like. Please try again.");
+      setError("Suka gagal disimpan. Silakan coba lagi.");
     } finally {
       setPending(false);
     }
@@ -46,7 +46,7 @@ export const LikeButton = ({ slug, initialLikes }: { slug: string; initialLikes:
 
   return (
     <div className="border-2 border-black bg-white p-5 rounded-md shadow-[4px_4px_0px_#0A0A0A]">
-      <h4 className="font-mono text-xs font-black uppercase text-black/50 mb-3">Enjoyed this story?</h4>
+      <h4 className="font-mono text-xs font-black uppercase text-black/50 mb-3">Suka tulisan ini?</h4>
       <button
         type="button"
         onClick={handleLike}
@@ -57,7 +57,7 @@ export const LikeButton = ({ slug, initialLikes }: { slug: string; initialLikes:
         } disabled:cursor-default`}
       >
         <Heart className={`h-4.5 w-4.5 ${liked ? "fill-white" : ""}`} aria-hidden="true" />
-        <span>{liked ? "Liked" : "Like"}</span>
+        <span>{liked ? "Disukai" : "Suka"}</span>
         <span className="opacity-80">· {likes}</span>
       </button>
       {error && (
@@ -88,10 +88,10 @@ export const ShareButtons = () => {
 
   return (
     <div className="border-2 border-black bg-white p-5 rounded-md shadow-[4px_4px_0px_#0A0A0A]">
-      <h4 className="font-mono text-xs font-black uppercase text-black/50 mb-3">Share Article</h4>
+      <h4 className="font-mono text-xs font-black uppercase text-black/50 mb-3">Bagikan Artikel</h4>
       <Button variant="primary" size="sm" onClick={() => copy(window.location.href)} className="w-full flex items-center justify-center gap-2">
         {copied ? <Check className="h-4.5 w-4.5" aria-hidden="true" /> : <Share2 className="h-4.5 w-4.5" aria-hidden="true" />}
-        <span aria-live="polite">{copied ? "Link Copied!" : "Copy Link"}</span>
+        <span aria-live="polite">{copied ? "Tautan Tersalin!" : "Salin Tautan"}</span>
       </Button>
     </div>
   );
@@ -105,8 +105,8 @@ export const CopyCodeButton = ({ code }: { code: string }) => {
       type="button"
       onClick={() => copy(code)}
       className="absolute top-3 right-3 flex h-7 w-7 items-center justify-center border border-black bg-white text-black rounded shadow-[1px_1px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none hover:bg-yellow transition-all"
-      aria-label={copied ? "Copied" : "Copy code"}
-      title="Copy code"
+      aria-label={copied ? "Tersalin" : "Salin kode"}
+      title="Salin kode"
     >
       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-3.5 w-3.5" />}
     </button>

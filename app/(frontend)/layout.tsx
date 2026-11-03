@@ -10,22 +10,21 @@ import { Footer } from "./_components/Footer";
 import { SearchModal } from "./_components/SearchModal";
 import { MusicPlayer } from "./_components/MusicPlayer";
 
-const description =
-  "An editorial blog exploring the archives of world history, political theories, geopolitics, and classical literature critiques.";
+const description = "Ruang kurasi tulisan editorial seputar opini kritis, ulasan musik, bedah buku sastra, dan analisis sinema.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} — History, Politics & Letters`,
+    default: `${SITE_NAME} — Opini, Musik, Buku & Movie`,
     template: `%s | ${SITE_NAME}`,
   },
   description,
-  keywords: ["history", "politics", "literature", "philosophy", "geopolitics", "sejarah", "politik", "sastra", "filsafat"],
+  keywords: ["opini", "esai", "musik", "buku", "sastra", "film", "ulasan", "blog"],
   openGraph: {
     type: "website",
-    locale: "en_US",
+    locale: "id_ID",
     siteName: SITE_NAME,
-    title: `${SITE_NAME} — History, Politics & Letters`,
+    title: `${SITE_NAME} — Opini, Musik, Buku & Movie`,
     description,
   },
   twitter: { card: "summary_large_image" },
@@ -38,7 +37,7 @@ export default async function PublicLayout({ children }: Readonly<{ children: Re
   const [author, tracks] = await Promise.all([getSiteAuthor(), getTracks()]);
 
   return (
-    <html lang="en" className={fontVariables}>
+    <html lang="id" className={fontVariables}>
       <body className="min-h-screen flex flex-col">
         <Navbar />
         <main className="flex-1">{children}</main>

@@ -30,8 +30,8 @@ export const TableOfContents = ({ items }: { items: TocItem[] }) => {
   };
 
   return (
-    <nav aria-label="Table of contents" className="border-2 border-black bg-cream-dark p-5 rounded-md shadow-[4px_4px_0px_#0A0A0A]">
-      <h3 className="font-mono text-xs font-black uppercase tracking-wider text-black/50 mb-3">Table of Contents</h3>
+    <nav aria-label="Daftar isi" className="border-2 border-black bg-cream-dark p-5 rounded-md shadow-[4px_4px_0px_#0A0A0A]">
+      <h3 className="font-mono text-xs font-black uppercase tracking-wider text-black/50 mb-3">Daftar Isi</h3>
       <ul className="flex flex-col gap-2">
         {items.map((item) => (
           <li key={item.id}>

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { ApiError, handleApiError, readJson } from "@/lib/api";
+import { ApiError, assertWithinLimits, handleApiError, readJson } from "@/lib/api";
 import { getApprovedComments, publicCommentSelect, toPublicComment } from "@/lib/comments";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { clientIp, LIMITS } from "@/lib/rate-limit";
 import { commentInput } from "@/lib/validation";
 
 type Ctx = { params: Promise<{ slug: string }> };
@@ -25,14 +25,9 @@ export async function GET(_req: Request, { params }: Ctx) {
 
 export async function POST(req: Request, { params }: Ctx) {
   try {
-    const limit = rateLimit(`comment:${clientIp(req)}`, 5, 10 * 60 * 1000);
-    if (!limit.ok) {
-      throw new ApiError(429, "Terlalu banyak komentar terkirim. Coba lagi nanti.", {
-        "Retry-After": String(limit.retryAfterSeconds),
-      });
-    }
-
     const { slug } = await params;
+    assertWithinLimits(LIMITS.comment(clientIp(req), slug), () => "Terlalu banyak komentar terkirim. Coba lagi nanti.");
+
     const { website, ...input } = await readJson(req, commentInput);
     const post = await findPublishedPost(slug);
 

@@ -7,7 +7,7 @@ import { estimateReadingTime } from "@/lib/format";
 import { MarkdownContent } from "@/app/(frontend)/_components/MarkdownContent";
 import { apiRequest, type Collection } from "./api";
 import { MediaUploader, uploadFile } from "./MediaUploader";
-import type { AdminCategory, AdminPost, AdminTag } from "./types";
+import type { AdminCategory, AdminPost, AdminPostDetail, AdminTag } from "./types";
 import { CancelEditButton, Field, inputClass, ListState, Panel, RowActions, SearchBox, SubmitButton, useFeedback } from "./ui";
 
 const EMPTY_FORM = {
@@ -39,6 +39,7 @@ export function PostsTab({ posts, categories, tags }: PostsTabProps) {
   const [query, setQuery] = useState("");
   const [imageUrlInput, setImageUrlInput] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const set = <K extends keyof typeof EMPTY_FORM>(key: K, value: (typeof EMPTY_FORM)[K]) => setForm((prev) => ({ ...prev, [key]: value }));
@@ -50,7 +51,19 @@ export function PostsTab({ posts, categories, tags }: PostsTabProps) {
     setPreview(false);
   };
 
-  const startEdit = (post: AdminPost) => {
+  const startEdit = async (summary: AdminPost) => {
+    if (loadingId) return;
+    setLoadingId(summary.id);
+    let post: AdminPostDetail;
+    try {
+      // The list omits the article body; load it only when editing.
+      post = await apiRequest<AdminPostDetail>(`/api/admin/posts/${summary.id}`);
+    } catch (err) {
+      notify("error", err instanceof Error ? err.message : "Gagal memuat artikel.");
+      return;
+    } finally {
+      setLoadingId(null);
+    }
     setEditingId(post.id);
     setSlugTouched(true);
     setForm({

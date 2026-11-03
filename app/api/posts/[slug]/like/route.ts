@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { ApiError, handleApiError } from "@/lib/api";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { ApiError, assertWithinLimits, handleApiError } from "@/lib/api";
+import { clientIp, LIMITS } from "@/lib/rate-limit";
 
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await params;
 
-    // One like per post per IP per day (the button also remembers it locally).
-    if (!rateLimit(`like:${clientIp(req)}:${slug}`, 1, 24 * 60 * 60 * 1000).ok) {
-      throw new ApiError(429, "Anda sudah menyukai artikel ini.");
-    }
+    // One like per post per IP per day, plus a per-post cap so a spoofed IP
+    // can't inflate the count (the button also remembers it locally).
+    assertWithinLimits(LIMITS.like(clientIp(req), slug), () => "Anda sudah menyukai artikel ini.");
 
     const { count } = await prisma.post.updateMany({
       where: { slug, published: true },

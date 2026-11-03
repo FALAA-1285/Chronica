@@ -1,5 +1,8 @@
 export const SITE_NAME = "Chronica";
 
+/** Articles per page in the article grid (server render, API and "load more"). */
+export const POSTS_PAGE_SIZE = 6;
+
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
 
 /** Icons selectable for a category (rendered by CategoryIcon). */

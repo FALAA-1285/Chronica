@@ -22,11 +22,12 @@ export async function saveUpload(originalName: string, data: Buffer, kind: Uploa
   return `/uploads/${kind}/${fileName}`;
 }
 
-async function isReferenced(url: string): Promise<boolean> {
+/** True while any row still points at this upload (covers, inline Markdown, audio, avatar, About story). */
+export async function isReferenced(url: string): Promise<boolean> {
   const [posts, tracks, authors] = await Promise.all([
     prisma.post.count({ where: { OR: [{ coverImage: url }, { content: { contains: url } }] } }),
     prisma.track.count({ where: { OR: [{ audioUrl: url }, { coverUrl: url }] } }),
-    prisma.author.count({ where: { avatar: url } }),
+    prisma.author.count({ where: { OR: [{ avatar: url }, { story: { contains: url } }] } }),
   ]);
   return posts + tracks + authors > 0;
 }

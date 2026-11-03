@@ -28,7 +28,7 @@ describe("parseToc", () => {
 
 describe("format", () => {
   it("formats dates in UTC so server and client agree", () => {
-    expect(formatDate("2026-05-20T23:30:00Z")).toBe("May 20, 2026");
+    expect(formatDate("2026-05-20T23:30:00Z")).toBe("20 Mei 2026");
   });
 
   it("estimates reading time with a 1 minute minimum", () => {

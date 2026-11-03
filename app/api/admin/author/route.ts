@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { ApiError, handleApiError, readJson, requireAdmin } from "@/lib/api";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { startSession } from "@/lib/auth/session";
+import { extractUploadUrls } from "@/lib/upload-rules";
 import { removeUnusedUploads } from "@/lib/uploads";
 import { authorInput } from "@/lib/validation";
 
@@ -59,9 +60,10 @@ export async function PUT(req: Request) {
     });
 
     // Changing the password revokes other sessions; keep this one signed in.
-    if (passwordHash) await startSession(user.id, passwordHash);
+    if (passwordHash) await startSession({ id: user.id, password: passwordHash, sessionVersion: existing.sessionVersion });
 
-    if (existing.avatar !== updated.avatar) await removeUnusedUploads([existing.avatar]);
+    // Files dropped from the avatar or the About story are deleted once nothing else uses them.
+    await removeUnusedUploads(extractUploadUrls(existing.avatar, existing.story));
     revalidatePath("/", "layout");
 
     return NextResponse.json(updated);

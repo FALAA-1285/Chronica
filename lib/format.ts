@@ -1,5 +1,5 @@
 // Fixed locale + UTC so server and client render the same string (no hydration mismatch).
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
+const dateFormatter = new Intl.DateTimeFormat("id-ID", {
   year: "numeric",
   month: "long",
   day: "numeric",

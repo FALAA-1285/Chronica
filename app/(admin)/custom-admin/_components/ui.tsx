@@ -2,6 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Check, Edit2, Search, Trash2, X } from "lucide-react";
+import { useFocusTrap } from "@/lib/use-focus-trap";
 
 export const inputClass =
   "w-full p-2 border-2 border-black rounded bg-white text-black text-sm focus:bg-yellow/10 focus:outline-none focus-visible:outline-electric-blue";
@@ -119,6 +120,8 @@ export function FeedbackProvider({ children }: { children: React.ReactNode }) {
   const [dialog, setDialog] = useState<{ message: string; confirmLabel: string; resolve: (ok: boolean) => void } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const confirmButton = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(dialogRef, !!dialog);
 
   const notify = useCallback((type: Toast["type"], message: string) => {
     clearTimeout(timer.current);
@@ -170,6 +173,7 @@ export function FeedbackProvider({ children }: { children: React.ReactNode }) {
       {dialog && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/50 p-4" onClick={() => close(false)}>
           <div
+            ref={dialogRef}
             role="alertdialog"
             aria-modal="true"
             aria-labelledby="confirm-message"

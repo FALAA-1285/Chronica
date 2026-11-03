@@ -22,7 +22,7 @@ export default async function AboutPage() {
   const story = author?.story.trim() || author?.bio.trim() || "";
 
   return (
-    <div lang="id" className="flex flex-col min-h-screen bg-white pb-20">
+    <div className="flex flex-col min-h-screen bg-white pb-20">
       <PageHero
         image="/images/hero-about.jpg"
         imagePosition="center 40%"

@@ -1,17 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { ApiError, handleApiError, readJson } from "@/lib/api";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { assertWithinLimits, handleApiError, readJson } from "@/lib/api";
+import { clientIp, LIMITS } from "@/lib/rate-limit";
 import { contactInput } from "@/lib/validation";
 
 export async function POST(req: Request) {
   try {
-    const limit = rateLimit(`contact:${clientIp(req)}`, 5, 60 * 60 * 1000);
-    if (!limit.ok) {
-      throw new ApiError(429, "Terlalu banyak pesan terkirim. Coba lagi nanti.", {
-        "Retry-After": String(limit.retryAfterSeconds),
-      });
-    }
+    assertWithinLimits(LIMITS.contact(clientIp(req)), () => "Terlalu banyak pesan terkirim. Coba lagi nanti.");
 
     const { website, subject, ...message } = await readJson(req, contactInput);
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { checkUpload, extractUploadUrls } from "@/lib/upload-rules";
-import { rateLimit } from "@/lib/rate-limit";
+import { clientIp, enforceLimits, rateLimit } from "@/lib/rate-limit";
+import { isBot, shouldCountView } from "@/lib/views";
 import { authorInput, categoryInput, commentInput, contactInput, postInput, trackInput } from "@/lib/validation";
 
 const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0, 0, 0, 0, 0]);
@@ -91,5 +92,50 @@ describe("commentInput", () => {
     expect(commentInput.safeParse({ name: "Budi", email: "budi@example.com", content: "x".repeat(2001) }).success).toBe(false);
     expect(commentInput.safeParse({ name: "Budi", email: "not-an-email", content: "Halo" }).success).toBe(false);
     expect(commentInput.safeParse({ name: "", email: "budi@example.com", content: "Halo" }).success).toBe(false);
+  });
+});
+
+describe("clientIp / enforceLimits", () => {
+  const req = (headers: Record<string, string>) => new Request("http://site.test/", { headers });
+
+  it("uses the right-most forwarded hop, never the client-controlled left-most one", () => {
+    expect(clientIp(req({ "x-forwarded-for": "6.6.6.6, 203.0.113.9" }), false)).toBe("203.0.113.9");
+    expect(clientIp(req({}), false)).toBe("unknown");
+  });
+
+  it("trusts X-Real-IP only when TRUST_PROXY is on", () => {
+    const headers = { "x-real-ip": "203.0.113.5", "x-forwarded-for": "6.6.6.6" };
+    expect(clientIp(req(headers), true)).toBe("203.0.113.5");
+    expect(clientIp(req(headers), false)).toBe("6.6.6.6");
+  });
+
+  it("blocks on the IP-independent rule even when every IP is new", () => {
+    const now = 3_000_000;
+    const results = Array.from({ length: 4 }, (_, i) =>
+      enforceLimits(
+        [
+          { key: `t:ip:${i}`, limit: 5, windowMs: 1000 },
+          { key: "t:global", limit: 3, windowMs: 1000 },
+        ],
+        now,
+      ).ok,
+    );
+    expect(results).toEqual([true, true, true, false]);
+  });
+});
+
+describe("view counting", () => {
+  const browser = "Mozilla/5.0 (Windows NT 10.0) Chrome/130";
+
+  it("ignores bots and empty user agents", () => {
+    expect(isBot("Googlebot/2.1")).toBe(true);
+    expect(isBot(null)).toBe(true);
+    expect(isBot(browser)).toBe(false);
+  });
+
+  it("counts a visitor once per article per day", () => {
+    expect(shouldCountView("post-x", "1.2.3.4", browser, 5_000)).toBe(true);
+    expect(shouldCountView("post-x", "1.2.3.4", browser, 6_000)).toBe(false);
+    expect(shouldCountView("post-y", "1.2.3.4", browser, 6_000)).toBe(true);
   });
 });

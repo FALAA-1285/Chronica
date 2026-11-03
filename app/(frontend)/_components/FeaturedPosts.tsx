@@ -14,7 +14,7 @@ export const FeaturedPosts = ({ posts }: { posts: PostSummary[] }) => {
           <div className="flex h-10 w-10 items-center justify-center border-2 border-black bg-coral text-white shadow-[2px_2px_0px_#0A0A0A]">
             <Sparkles className="h-5 w-5" aria-hidden="true" />
           </div>
-          <h2 className="text-display text-2xl sm:text-4xl uppercase text-black">Featured Stories</h2>
+          <h2 className="text-display text-2xl sm:text-4xl uppercase text-black">Tulisan Pilihan</h2>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

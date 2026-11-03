@@ -14,15 +14,15 @@ interface ArticleCardProps {
 function Stats({ post, className }: { post: PostSummary; className: string }) {
   return (
     <div className={className}>
-      <span className="flex items-center gap-1" title="Views">
+      <span className="flex items-center gap-1" title="Dibaca">
         <Eye className="h-4 w-4" aria-hidden="true" />
         <span>{post.views}</span>
-        <span className="sr-only">views</span>
+        <span className="sr-only">kali dibaca</span>
       </span>
-      <span className="flex items-center gap-1" title="Likes">
+      <span className="flex items-center gap-1" title="Suka">
         <Heart className="h-4 w-4 text-coral" aria-hidden="true" />
         <span>{post.likes}</span>
-        <span className="sr-only">likes</span>
+        <span className="sr-only">suka</span>
       </span>
     </div>
   );
@@ -61,7 +61,7 @@ export const ArticleCard = ({ post, featured = false }: ArticleCardProps) => {
                 <CategoryBadge category={post.category} />
                 <span className="flex items-center gap-1 font-mono text-xs text-black/60">
                   <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>{post.readingTime} min read</span>
+                  <span>{post.readingTime} menit baca</span>
                 </span>
               </div>
 
@@ -113,7 +113,7 @@ export const ArticleCard = ({ post, featured = false }: ArticleCardProps) => {
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2 font-mono text-[11px] text-black/60">
             <Clock className="h-3 w-3" aria-hidden="true" />
-            <span>{post.readingTime} MIN READ</span>
+            <span>{post.readingTime} MENIT BACA</span>
             <span aria-hidden="true">•</span>
             <span>{formatDate(post.publishedAt)}</span>
           </div>

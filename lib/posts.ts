@@ -1,5 +1,6 @@
 import { cache } from "react";
 import type { Prisma } from "@prisma/client";
+import { POSTS_PAGE_SIZE } from "@/lib/constants";
 import { prisma } from "@/lib/db";
 import { parseToc } from "@/lib/slug";
 import type { Author, Category, Post, PostSummary, Track } from "@/lib/types";
@@ -111,20 +112,40 @@ export async function getRelatedPosts(post: Pick<Post, "id" | "category">, limit
   return rows.map(toSummary);
 }
 
-export async function searchPosts(query: string, limit = 8): Promise<PostSummary[]> {
-  const q = query.trim();
-  const rows = await prisma.post.findMany({
-    where: q
+export interface PostListQuery {
+  /** Free text matched against title, excerpt, category and tag names. */
+  q?: string;
+  /** Category slug; empty or "all" means every category. */
+  category?: string;
+  offset?: number;
+  limit?: number;
+}
+
+export interface PostPage {
+  posts: PostSummary[];
+  hasMore: boolean;
+}
+
+/** One page of published posts, filtered in the database (never the whole table). */
+export async function listPosts({ q = "", category = "", offset = 0, limit = POSTS_PAGE_SIZE }: PostListQuery = {}): Promise<PostPage> {
+  const text = q.trim();
+  const where: Prisma.PostWhereInput = {
+    ...published,
+    ...(category && category !== "all" ? { category: { slug: category } } : {}),
+    ...(text
       ? {
-          ...published,
-          OR: [{ title: { contains: q } }, { excerpt: { contains: q } }, { category: { name: { contains: q } } }],
+          OR: [
+            { title: { contains: text } },
+            { excerpt: { contains: text } },
+            { category: { name: { contains: text } } },
+            { tags: { some: { name: { contains: text } } } },
+          ],
         }
-      : published,
-    select: summarySelect,
-    orderBy: newestFirst,
-    take: limit,
-  });
-  return rows.map(toSummary);
+      : {}),
+  };
+  // Fetch one extra row to know whether another page exists without a COUNT query.
+  const rows = await prisma.post.findMany({ where, select: summarySelect, orderBy: newestFirst, skip: offset, take: limit + 1 });
+  return { posts: rows.slice(0, limit).map(toSummary), hasMore: rows.length > limit };
 }
 
 export async function getCategoriesWithCount(): Promise<Category[]> {

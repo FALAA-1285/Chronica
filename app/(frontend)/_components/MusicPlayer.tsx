@@ -68,7 +68,7 @@ export function MusicPlayer({ tracks }: { tracks: Track[] }) {
     "p-2 border-2 border-black bg-white hover:bg-yellow rounded-full shadow-[1.5px_1.5px_0px_#000] text-black transition-all cursor-pointer";
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 font-sans">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 font-sans">
       <audio
         ref={audioRef}
         src={activeTrack.audioUrl}
@@ -80,20 +80,20 @@ export function MusicPlayer({ tracks }: { tracks: Track[] }) {
 
       {isExpanded ? (
         <section
-          aria-label="Music player"
+          aria-label="Pemutar musik"
           className="border-3 border-black bg-cream-dark p-4 rounded-xl shadow-[8px_8px_0px_#0A0A0A] flex flex-col gap-3 w-[calc(100vw-3rem)] max-w-96"
         >
           <div className="flex items-center justify-between border-b border-dashed border-black/25 pb-2.5">
             <div className="flex items-center gap-1.5 font-mono text-xs font-black uppercase text-black/60">
               <Music className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Chronica Music Player</span>
+              <span>Pemutar Musik Chronica</span>
             </div>
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => setShowPlaylist((v) => !v)}
                 className={`p-1 border border-black rounded transition-all cursor-pointer text-black ${showPlaylist ? "bg-neon-green" : "bg-white hover:bg-yellow"}`}
-                aria-label="Playlist"
+                aria-label="Daftar putar"
                 aria-expanded={showPlaylist}
               >
                 <ListMusic className="h-4 w-4" />
@@ -102,7 +102,7 @@ export function MusicPlayer({ tracks }: { tracks: Track[] }) {
                 type="button"
                 onClick={() => setIsExpanded(false)}
                 className="p-1 border border-black bg-white hover:bg-coral rounded text-black transition-all cursor-pointer"
-                aria-label="Minimize player"
+                aria-label="Kecilkan pemutar"
               >
                 <ChevronDown className="h-4 w-4" />
               </button>
@@ -150,7 +150,7 @@ export function MusicPlayer({ tracks }: { tracks: Track[] }) {
               max={duration || 100}
               value={currentTime}
               onChange={handleSeek}
-              aria-label="Seek"
+              aria-label="Posisi lagu"
               className="w-full accent-electric-blue h-1.5 cursor-pointer"
             />
             <div className="flex justify-between font-mono text-[10px] text-black/60">
@@ -161,18 +161,18 @@ export function MusicPlayer({ tracks }: { tracks: Track[] }) {
 
           <div className="flex items-center justify-between gap-4 mt-1 border-t border-dashed border-black/25 pt-3">
             <div className="flex items-center gap-2">
-              <button type="button" onClick={() => playTrack(currentTrackIndex - 1)} className={iconButton} aria-label="Previous track">
+              <button type="button" onClick={() => playTrack(currentTrackIndex - 1)} className={iconButton} aria-label="Lagu sebelumnya">
                 <SkipBack className="h-3.5 w-3.5 fill-black" />
               </button>
               <button
                 type="button"
                 onClick={() => setIsPlaying((v) => !v)}
                 className="p-3 border-2 border-black bg-yellow hover:bg-neon-green rounded-full shadow-[2px_2px_0px_#000] text-black transition-all cursor-pointer"
-                aria-label={isPlaying ? "Pause" : "Play"}
+                aria-label={isPlaying ? "Jeda" : "Putar"}
               >
                 {isPlaying ? <Pause className="h-4.5 w-4.5 fill-black" /> : <Play className="h-4.5 w-4.5 fill-black ml-0.5" />}
               </button>
-              <button type="button" onClick={() => playTrack(currentTrackIndex + 1)} className={iconButton} aria-label="Next track">
+              <button type="button" onClick={() => playTrack(currentTrackIndex + 1)} className={iconButton} aria-label="Lagu berikutnya">
                 <SkipForward className="h-3.5 w-3.5 fill-black" />
               </button>
             </div>
@@ -182,7 +182,7 @@ export function MusicPlayer({ tracks }: { tracks: Track[] }) {
                 type="button"
                 onClick={() => setIsMuted((v) => !v)}
                 className="text-black/85 hover:text-coral transition-colors"
-                aria-label={isMuted ? "Unmute" : "Mute"}
+                aria-label={isMuted ? "Bunyikan" : "Bisukan"}
               >
                 {isMuted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
               </button>
@@ -201,7 +201,7 @@ export function MusicPlayer({ tracks }: { tracks: Track[] }) {
 
           {showPlaylist && (
             <div className="border-2 border-black bg-cream p-3 rounded-lg mt-2 flex flex-col gap-1.5 max-h-48 overflow-y-auto shadow-[4px_4px_0px_#000]">
-              <div className="font-mono text-[10px] font-black uppercase text-black/50 mb-1 border-b border-black/15 pb-1">Playlist</div>
+              <div className="font-mono text-[10px] font-black uppercase text-black/50 mb-1 border-b border-black/15 pb-1">Daftar Putar</div>
               {tracks.map((track, index) => (
                 <button
                   type="button"
@@ -226,8 +226,8 @@ export function MusicPlayer({ tracks }: { tracks: Track[] }) {
         <button
           type="button"
           onClick={() => setIsExpanded(true)}
-          className="relative flex h-14 w-14 items-center justify-center border-3 border-black bg-yellow hover:bg-neon-green rounded-full shadow-[4px_4px_0px_#000] text-black transition-all hover:scale-105 hover:rotate-3 duration-200 cursor-pointer"
-          aria-label="Open music player"
+          className="relative flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center border-3 border-black bg-yellow hover:bg-neon-green rounded-full shadow-[4px_4px_0px_#000] text-black transition-all hover:scale-105 hover:rotate-3 duration-200 cursor-pointer"
+          aria-label="Buka pemutar musik"
         >
           <Music className={`h-6 w-6 ${isPlaying ? "animate-spin-vinyl" : ""}`} aria-hidden="true" />
           {isPlaying && (

@@ -28,11 +28,11 @@ export function ContactForm() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Your message could not be sent.");
+        throw new Error(data.error || "Pesan gagal dikirim. Silakan coba lagi.");
       }
       setStatus("sent");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Your message could not be sent.");
+      setError(err instanceof Error ? err.message : "Pesan gagal dikirim. Silakan coba lagi.");
       setStatus("idle");
     }
   };
@@ -43,9 +43,9 @@ export function ContactForm() {
         <div className="flex h-16 w-16 items-center justify-center border-2 border-black bg-neon-green text-black shadow-[3px_3px_0px_#0A0A0A] rounded-full mb-6">
           <Check className="h-8 w-8" aria-hidden="true" />
         </div>
-        <h3 className="text-display text-2xl uppercase text-black">Message Sent!</h3>
+        <h3 className="text-display text-2xl uppercase text-black">Pesan Terkirim!</h3>
         <p className="font-bold text-black/60 text-sm max-w-xs mx-auto mt-2 leading-relaxed">
-          Thank you, {form.name}. Your message has been delivered to the editor&apos;s inbox.
+          Terima kasih, {form.name}. Pesan Anda sudah masuk ke kotak masuk redaksi.
         </p>
         <Button
           variant="secondary"
@@ -56,7 +56,7 @@ export function ContactForm() {
             setStatus("idle");
           }}
         >
-          Send another message
+          Kirim pesan lain
         </Button>
       </div>
     );
@@ -65,19 +65,19 @@ export function ContactForm() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <div>
-        <label htmlFor="contact-name" className={labelClass}>Your Full Name</label>
+        <label htmlFor="contact-name" className={labelClass}>Nama Lengkap</label>
         <Input id="contact-name" type="text" autoComplete="name" maxLength={191} value={form.name} onChange={update("name")} required className="text-sm" />
       </div>
       <div>
-        <label htmlFor="contact-email" className={labelClass}>Your Email Address</label>
+        <label htmlFor="contact-email" className={labelClass}>Alamat Email</label>
         <Input id="contact-email" type="email" autoComplete="email" maxLength={191} value={form.email} onChange={update("email")} required className="text-sm" />
       </div>
       <div>
-        <label htmlFor="contact-subject" className={labelClass}>Subject (optional)</label>
+        <label htmlFor="contact-subject" className={labelClass}>Subjek (opsional)</label>
         <Input id="contact-subject" type="text" maxLength={191} value={form.subject} onChange={update("subject")} className="text-sm" />
       </div>
       <div>
-        <label htmlFor="contact-message" className={labelClass}>Your Message</label>
+        <label htmlFor="contact-message" className={labelClass}>Pesan</label>
         <textarea
           id="contact-message"
           value={form.message}
@@ -103,7 +103,7 @@ export function ContactForm() {
       )}
 
       <Button type="submit" variant="neon" size="lg" disabled={status === "sending"} className="w-full flex items-center justify-center gap-2 mt-2 disabled:opacity-60">
-        <span>{status === "sending" ? "Sending…" : "Send Message"}</span>
+        <span>{status === "sending" ? "Mengirim…" : "Kirim Pesan"}</span>
         <Send className="h-5 w-5" aria-hidden="true" />
       </Button>
     </form>

@@ -15,7 +15,7 @@ export const CategoryCard = ({ category }: { category: Category }) => {
           <CategoryIcon name={category.icon} className="h-8 w-8" />
         </div>
         <span className="font-mono text-xs font-black uppercase bg-black text-white px-2 py-0.5 border border-black rounded-sm">
-          {category.count} {category.count === 1 ? "Post" : "Posts"}
+          {category.count} Artikel
         </span>
       </div>
 

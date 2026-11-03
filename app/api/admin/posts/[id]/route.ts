@@ -7,7 +7,19 @@ import { DEFAULT_COVER_IMAGE } from "@/lib/media";
 import { extractUploadUrls } from "@/lib/upload-rules";
 import { removeUnusedUploads } from "@/lib/uploads";
 import { postInput } from "@/lib/validation";
-import { adminPostInclude } from "@/lib/admin-queries";
+import { adminPostInclude, adminPostOmit } from "@/lib/admin-queries";
+
+/** Full post including the Markdown body, for the editor. */
+export async function GET(req: Request, { params }: RouteContext) {
+  try {
+    await requireAdmin(req);
+    const { id } = await params;
+    const post = await prisma.post.findUniqueOrThrow({ where: { id }, include: adminPostInclude });
+    return NextResponse.json(post);
+  } catch (error) {
+    return handleApiError(error, "get post");
+  }
+}
 
 export async function PUT(req: Request, { params }: RouteContext) {
   try {
@@ -29,6 +41,7 @@ export async function PUT(req: Request, { params }: RouteContext) {
         tags: { set: tags.map((tagId) => ({ id: tagId })) },
       },
       include: adminPostInclude,
+      omit: adminPostOmit,
     });
 
     await removeUnusedUploads(extractUploadUrls(existing.coverImage, existing.content));

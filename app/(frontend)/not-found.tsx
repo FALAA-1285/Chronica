@@ -5,8 +5,8 @@ import { ArrowLeft, BookOpen, Home } from "lucide-react";
 import { buttonClass } from "./_components/ui/Button";
 
 export const metadata: Metadata = {
-  title: "Page Not Found",
-  description: "This page was lost in the archives of history.",
+  title: "Halaman Tidak Ditemukan",
+  description: "Halaman ini hilang di antara tumpukan arsip.",
 };
 
 export default function NotFound() {
@@ -26,19 +26,19 @@ export default function NotFound() {
         <p className="text-display text-7xl sm:text-9xl text-black tracking-tighter uppercase leading-none" aria-hidden="true">
           404
         </p>
-        <h1 className="text-display text-2xl sm:text-4xl text-black tracking-tight uppercase mt-4">Page Lost in the Archives</h1>
+        <h1 className="text-display text-2xl sm:text-4xl text-black tracking-tight uppercase mt-4">Halaman Hilang di Arsip</h1>
         <p className="font-semibold text-black/70 text-sm sm:text-base mt-4 leading-relaxed max-w-sm">
-          The page you are looking for has moved or no longer exists.
+          Halaman yang Anda cari sudah dipindahkan atau tidak ada lagi.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center gap-3.5 mt-8 w-full sm:w-auto">
           <Link href="/" className={buttonClass({ variant: "electric", className: "w-full sm:w-auto gap-2" })}>
             <Home className="h-4.5 w-4.5" aria-hidden="true" />
-            <span>Back Home</span>
+            <span>Ke Beranda</span>
           </Link>
           <Link href="/blog" className={buttonClass({ variant: "secondary", className: "w-full sm:w-auto gap-2" })}>
             <ArrowLeft className="h-4.5 w-4.5" aria-hidden="true" />
-            <span>Browse Blog</span>
+            <span>Jelajahi Blog</span>
           </Link>
         </div>
       </div>

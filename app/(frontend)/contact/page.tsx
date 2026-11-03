@@ -6,8 +6,8 @@ import { PageHero } from "../_components/PageHero";
 import { ContactForm } from "./ContactForm";
 
 export const metadata: Metadata = {
-  title: "Contact",
-  description: "Send a message to the editor of Chronica.",
+  title: "Kontak",
+  description: "Kirim pesan, koreksi, atau ide cerita kepada redaksi Chronica.",
 };
 
 export default async function ContactPage() {
@@ -31,15 +31,15 @@ export default async function ContactPage() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
             <div className="md:col-span-5 flex flex-col gap-6">
               <div className="border-2 border-black bg-cream-dark p-6 rounded-md shadow-[4px_4px_0px_#0A0A0A]">
-                <h2 className="text-display text-xl uppercase text-black mb-4 font-black">How it works</h2>
+                <h2 className="text-display text-xl uppercase text-black mb-4 font-black">Cara Kerjanya</h2>
                 <p className="font-bold text-sm text-black/75 leading-relaxed">
-                  Messages are stored securely and read by {author?.name ?? "the editor"}. Please include an email address you can be reached at.
+                  Pesan disimpan dengan aman dan dibaca langsung oleh {author?.name ?? "redaksi"}. Cantumkan email yang aktif agar balasan bisa sampai.
                 </p>
               </div>
 
               {getSocialLinks(author?.social).length > 0 && (
                 <div className="border-2 border-black bg-white p-6 rounded-md shadow-[4px_4px_0px_#0A0A0A]">
-                  <h2 className="text-display text-xl uppercase text-black mb-4 font-black">Elsewhere</h2>
+                  <h2 className="text-display text-xl uppercase text-black mb-4 font-black">Temukan Saya</h2>
                   <SocialLinks social={author?.social} />
                 </div>
               )}

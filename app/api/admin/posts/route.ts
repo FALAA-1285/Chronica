@@ -5,12 +5,12 @@ import { handleApiError, readJson, requireAdmin } from "@/lib/api";
 import { estimateReadingTime } from "@/lib/format";
 import { DEFAULT_COVER_IMAGE } from "@/lib/media";
 import { postInput } from "@/lib/validation";
-import { adminPostInclude } from "@/lib/admin-queries";
+import { adminPostInclude, adminPostOmit } from "@/lib/admin-queries";
 
 export async function GET(req: Request) {
   try {
     await requireAdmin(req);
-    const posts = await prisma.post.findMany({ orderBy: { publishedAt: "desc" }, include: adminPostInclude });
+    const posts = await prisma.post.findMany({ orderBy: { publishedAt: "desc" }, include: adminPostInclude, omit: adminPostOmit });
     return NextResponse.json(posts);
   } catch (error) {
     return handleApiError(error, "list posts");
@@ -32,6 +32,7 @@ export async function POST(req: Request) {
         tags: { connect: tags.map((id) => ({ id })) },
       },
       include: adminPostInclude,
+      omit: adminPostOmit,
     });
 
     revalidatePath("/", "layout");
